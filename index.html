@@ -1341,13 +1341,19 @@
                 deleteBtn.className = 'todo-delete-btn';
                 deleteBtn.innerText = '삭제';
                 deleteBtn.onclick = () => {
-                    if (confirm('이 할 일을 삭제하시겠습니까?')) {
-                        scheduleData[selectedDate].splice(index, 1);
-                        // Add empty task at end to maintain 10 slots
-                        scheduleData[selectedDate].push({ text: '', checked: false, color: null });
-                        saveSchedule();
-                        renderTodos();
-                        renderCalendar();
+                    // Check if it's part of a routine
+                    if (task.routineId) {
+                        showRoutineDeleteModal(selectedDate, index);
+                    } else {
+                        // Normal delete
+                        if (confirm('이 할 일을 삭제하시겠습니까?')) {
+                            scheduleData[selectedDate].splice(index, 1);
+                            // Add empty task at end to maintain 10 slots
+                            scheduleData[selectedDate].push({ text: '', checked: false, color: null });
+                            saveSchedule();
+                            renderTodos();
+                            renderCalendar();
+                        }
                     }
                 };
 
@@ -1556,15 +1562,66 @@
             });
         }
 
+        // Routine Deletion Logic
+        let currentDeleteRoutineDate = null;
+        let currentDeleteRoutineIndex = null;
+
+        function showRoutineDeleteModal(date, index) {
+            currentDeleteRoutineDate = date;
+            currentDeleteRoutineIndex = index;
+            document.getElementById('routine-delete-modal').style.display = 'flex';
+        }
+
+        function closeRoutineDeleteModal() {
+            document.getElementById('routine-delete-modal').style.display = 'none';
+            currentDeleteRoutineDate = null;
+            currentDeleteRoutineIndex = null;
+        }
+
+        document.getElementById('btn-delete-single').addEventListener('click', () => {
+            if (currentDeleteRoutineDate && currentDeleteRoutineIndex !== null) {
+                // Remove routine tracking just for this instance, or delete it completely
+                // Easiest is to just remove it and add empty slot
+                scheduleData[currentDeleteRoutineDate].splice(currentDeleteRoutineIndex, 1);
+                scheduleData[currentDeleteRoutineDate].push({ text: '', checked: false, color: null });
+                saveSchedule();
+                renderTodos();
+                renderCalendar();
+                closeRoutineDeleteModal();
+            }
+        });
+
+        document.getElementById('btn-delete-all').addEventListener('click', () => {
+            if (currentDeleteRoutineDate && currentDeleteRoutineIndex !== null) {
+                const targetTask = scheduleData[currentDeleteRoutineDate][currentDeleteRoutineIndex];
+                const routineId = targetTask.routineId;
+
+                if (routineId) {
+                    // Iterate through all dates and remove the task with this routineId
+                    for (const date in scheduleData) {
+                        scheduleData[date] = scheduleData[date].filter(t => t.routineId !== routineId);
+                        // Ensure we still have 10 slots per day
+                        while (scheduleData[date].length < 10) {
+                            scheduleData[date].push({ text: '', checked: false, color: null });
+                        }
+                    }
+                    saveSchedule();
+                    renderTodos();
+                    renderCalendar();
+                }
+                closeRoutineDeleteModal();
+            }
+        });
+
         function togglePalette(paletteId) {
             const popup = document.getElementById(paletteId);
 
-            // Close any currently open palette and reset their parent's z-index
+            // Close all other palettes first
             document.querySelectorAll('.palette-popup').forEach(p => {
                 if (p.id !== paletteId) {
                     p.classList.remove('show');
                     const item = p.closest('.todo-item');
-                    if (item) item.style.zIndex = '';
+                    if (item) item.style.zIndex = '2'; // Reset z-index
                 }
             });
 
