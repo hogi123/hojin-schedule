@@ -489,9 +489,9 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             padding: 10px;
             z-index: 9999;
-            width: 160px;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 5px;
+            width: 140px;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
         }
 
         .palette-popup.show {
@@ -1024,11 +1024,16 @@
             }
         }
 
-        // Data & State - Ultra Pastel Colors for Glassmorphism Text Readability
+        // Data & State - Organized Pastel Colors
         const PRESET_COLORS = [
-            '#fce4ec', '#f8bbd0', '#fff9c4', '#fff59d', '#e8f5e9', '#c8e6c9',
-            '#e0f7fa', '#b2ebf2', '#e3f2fd', '#bbdefb', '#f3e5f5', '#e1bee7',
-            '#fff3e0', '#ffe0b2', '#fbe9e7', '#ffccbc', '#efebe9', '#d7ccc8'
+            // Row 1: Pinks & Reds
+            '#ffe4e1', '#ffc0cb', '#ffb6c1', '#f8bbd0', '#f48fb1',
+            // Row 2: Oranges & Yellows
+            '#fff3e0', '#ffe0b2', '#ffccbc', '#fff9c4', '#fff59d',
+            // Row 3: Greens & Mints
+            '#f1f8e9', '#dcedc8', '#e8f5e9', '#c8e6c9', '#e0f2f1',
+            // Row 4: Blues & Purples
+            '#e3f2fd', '#bbdefb', '#e0f7fa', '#f3e5f5', '#e1bee7'
         ];
 
         let currentYear = 2026;
