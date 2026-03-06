@@ -384,11 +384,67 @@
             color: #333;
         }
 
+        .todo-item-container {
+            position: relative;
+            width: 100%;
+            margin-bottom: 8px;
+            overflow: hidden;
+            border-radius: 8px;
+            background-color: #ff3b30;
+            /* iOS Red behind the item */
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            background: #f9f9f9;
+            border-left: 4px solid #eee;
+            padding: 10px 15px;
+            width: 100%;
+            box-sizing: border-box;
+            min-width: 0;
+            position: relative;
+            z-index: 2;
+            /* Sit above the delete button */
+            transition: transform 0.2s ease-out;
+            /* Smooth snap back */
+        }
+
+        .todo-delete-btn {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 70px;
+            height: 100%;
+            background-color: #ff3b30;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 1;
+        }
+
+        .todo-item:active {
+            opacity: 0.8;
+            cursor: grabbing;
+        }
+
+        .todo-item.dragging {
+            opacity: 0.5;
+        }
+
         .todo-list {
             list-style: none;
             padding: 0;
             margin: 0;
-            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+            overflow-y: auto;
         }
 
         .todo-item {
@@ -1289,9 +1345,79 @@
             tasks.forEach((task, index) => {
                 if (index >= 10) return;
 
+                // Wrapper for Swipe-to-Delete
+                const liContainer = document.createElement('div');
+                liContainer.className = 'todo-item-container';
+
+                // Delete Button (Background)
+                const deleteBtn = document.createElement('div');
+                deleteBtn.className = 'todo-delete-btn';
+                deleteBtn.innerText = '삭제';
+                deleteBtn.onclick = () => {
+                    if (confirm('이 할 일을 삭제하시겠습니까?')) {
+                        scheduleData[selectedDate].splice(index, 1);
+                        // Add empty task at end to maintain 10 slots
+                        scheduleData[selectedDate].push({ text: '', checked: false, color: null });
+                        saveSchedule();
+                        renderTodos();
+                        renderCalendar();
+                    }
+                };
+
                 const li = document.createElement('li');
                 li.className = 'todo-item';
                 li.draggable = true;
+
+                // Swipe Logic
+                let liTouchStartX = 0;
+                let liTouchCurrentX = 0;
+                let liIsSwiping = false;
+
+                li.addEventListener('touchstart', (e) => {
+                    if (e.target.tagName.toLowerCase() === 'input' && e.target.type === 'text') return; // Let user focus input
+                    liTouchStartX = e.touches[0].clientX;
+                    liIsSwiping = true;
+                    li.style.transition = 'none';
+                }, { passive: true });
+
+                li.addEventListener('touchmove', (e) => {
+                    if (!liIsSwiping) return;
+                    liTouchCurrentX = e.touches[0].clientX;
+                    const deltaX = liTouchCurrentX - liTouchStartX;
+
+                    // Only allow swiping RIGHT (positive deltaX) up to 80px
+                    if (deltaX > 0 && deltaX < 85) {
+                        li.style.transform = `translateX(${deltaX}px)`;
+                    } else if (deltaX > 85) {
+                        li.style.transform = `translateX(85px)`; // Elastic limit
+                    }
+                }, { passive: true });
+
+                li.addEventListener('touchend', (e) => {
+                    if (!liIsSwiping) return;
+                    liIsSwiping = false;
+                    const deltaX = liTouchCurrentX - liTouchStartX;
+
+                    li.style.transition = 'transform 0.2s cubic-bezier(0.25, 1, 0.5, 1)';
+
+                    if (deltaX > 40) {
+                        // Snap open (70px is width of delete button)
+                        li.style.transform = `translateX(70px)`;
+
+                        // Auto-close if clicking anywhere else
+                        const closeSwipe = (evt) => {
+                            if (!liContainer.contains(evt.target)) {
+                                li.style.transform = `translateX(0)`;
+                                document.removeEventListener('touchstart', closeSwipe);
+                            }
+                        };
+                        // Add slightly later to not trigger instantly
+                        setTimeout(() => document.addEventListener('touchstart', closeSwipe), 50);
+                    } else {
+                        // Snap closed
+                        li.style.transform = `translateX(0)`;
+                    }
+                }, { passive: true });
 
                 li.ondragstart = (e) => {
                     dragItemIndex = index;
@@ -1413,7 +1539,10 @@
                 li.appendChild(input);
                 li.appendChild(routineBtn);
                 li.appendChild(colorPickerWrapper);
-                todoListEl.appendChild(li);
+
+                liContainer.appendChild(deleteBtn);
+                liContainer.appendChild(li);
+                todoListEl.appendChild(liContainer);
             });
         }
 
