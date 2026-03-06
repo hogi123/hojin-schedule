@@ -1619,19 +1619,26 @@
             document.querySelectorAll('.palette-popup').forEach(p => {
                 if (p.id !== paletteId) {
                     p.classList.remove('show');
+                    const container = p.closest('.todo-item-container');
                     const item = p.closest('.todo-item');
-                    if (item) item.style.zIndex = '2'; // Reset z-index
+                    if (container) container.style.zIndex = '0'; // Reset container z-index
+                    if (item) item.style.zIndex = '2'; // Reset item z-index
                 }
             });
 
             if (popup.classList.contains('show')) {
                 popup.classList.remove('show');
+                const container = popup.closest('.todo-item-container');
                 const item = popup.closest('.todo-item');
+                if (container) container.style.zIndex = '0';
                 if (item) item.style.zIndex = '';
                 activePaletteId = null;
             } else {
                 popup.classList.add('show');
+                const container = popup.closest('.todo-item-container');
                 const item = popup.closest('.todo-item');
+                // Elevate the entire container to break out of implicit stacking contexts
+                if (container) container.style.zIndex = '999';
                 if (item) item.style.zIndex = '999';
                 activePaletteId = paletteId;
             }
