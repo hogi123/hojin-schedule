@@ -1363,7 +1363,6 @@
                 let liSwipeDirectionDetermined = false;
 
                 li.addEventListener('touchstart', (e) => {
-                    if (e.target.tagName.toLowerCase() === 'input' && e.target.type === 'text') return; // Let user focus input
                     liTouchStartX = e.touches[0].clientX;
                     liTouchStartY = e.touches[0].clientY;
                     liIsSwiping = true;
