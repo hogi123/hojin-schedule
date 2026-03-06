@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2026 Schedule App</title>
+    <!-- PWA Setup -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4a90e2">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2370/2370264.png">
+
+    <!-- Firebase SDK (Compat versions for simple integration) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --bg-color: #f5f7fa;
+            --text-color: #333;
+            --range-color: #1abc9c;
+            /* A prettier teal/green */
+        }
+
+        body {
+            font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            /* Start at top so it can scroll down */
+            min-height: 100vh;
+            overflow-y: auto;
+            /* Allow vertical scrolling */
+            background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 480px;
+            background-color: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            min-height: 100vh;
+            /* Fill screen vertically but allow growing and scrolling */
+            /* Removed overflow: hidden causing clipping */
+            border-radius: 0;
+            /* Remove rounded corners to fit full height scroll */
+            border-left: 2px solid #ddd;
+            border-right: 2px solid #ddd;
+        }
+
+        #schedule-view {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            flex: 1;
+            padding-bottom: 90px;
+            /* Space for bottom nav */
+        }
+
+        #settings-view {
+            width: 100%;
+            height: 100%;
+            display: none;
+            padding: 20px;
+            background: white;
+            box-sizing: border-box;
+            overflow-y: auto;
+            padding-bottom: 70px;
+            /* Space for bottom nav */
+        }
+
+        /* Calendar Section (Top Half) */
+        .calendar-section {
+            width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+            padding: 10px;
+            /* Reduced for mobile */
+            display: flex;
+            flex-direction: column;
+            background: white;
+            user-select: none;
+        }
+
+        .calendar-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .calendar-header h2 {
+            margin: 0;
+            font-size: 20px;
+            color: #444;
+        }
+
+        .calendar-nav {
+            display: flex;
+            align-items: center;
+        }
+
+        .calendar-nav button {
+            background: none;
+            border: 1px solid #eee;
+            padding: 5px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 5px;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .calendar-nav button:hover {
+            background-color: #f0f0f0;
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        /* Memo (Glassmorphism) */
+        .memo-wrapper {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            padding: 10px;
+            width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+            display: flex;
+            flex-wrap: wrap;
+            /* Allow goals to wrap instead of forcing width */
+            align-items: center;
+            gap: 5px;
+        }
+
+        .memo-title {
+            margin: 0;
+            font-size: 14px;
+            font-weight: bold;
+            color: #555;
+            /* removed nowrap to allow squeezing */
+        }
+
+        .memo-lines {
+            display: flex;
+            flex-grow: 1;
+            gap: 10px;
+            overflow-x: auto;
+            -ms-overflow-style: none;
+            /* IE and Edge */
+            scrollbar-width: none;
+            /* Firefox */
+        }
+
+        .memo-lines::-webkit-scrollbar {
+            display: none;
+            /* Chrome, Safari and Opera */
+        }
+
+        .memo-line {
+            display: flex;
+            min-width: 60px;
+            /* Reduced to stop pushing the layout wide */
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 8px;
+            padding: 4px 8px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .memo-line input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-family: inherit;
+            font-size: 13px;
+            color: #333;
+            width: 100%;
+            min-width: 0;
+            /* Let it shrink on mobile */
+        }
+
+        /* Calendar Grid - No Gaps */
+        .calendar-grid {
+            width: 100%;
+            min-width: 0;
+            /* Critical for CSS grid to shrink below max-content */
+            box-sizing: border-box;
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            /* Force equal flexible columns that can shrink */
+            gap: 0;
+            /* NO GAP */
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 0 5px;
+            padding-bottom: 20px;
+            border-top: 1px solid #ddd;
+            border-left: 1px solid #ddd;
+            -ms-overflow-style: none;
+            /* IE and Edge */
+            scrollbar-width: none;
+            /* Firefox */
+        }
+
+        .calendar-grid::-webkit-scrollbar {
+            display: none;
+            /* Chrome, Safari and Opera */
+        }
+
+        .day-header {
+            text-align: center;
+            padding: 5px 2px;
+            /* Less padding to fit in narrow screen */
+            font-weight: 600;
+            color: #222;
+            /* Mon-Fri stark black default */
+            font-size: 13px;
+            border-right: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .day-header.sunday {
+            color: #e74c3c;
+        }
+
+        .day-header.saturday {
+            color: #3498db;
+        }
+
+        .calendar-cell {
+            background-color: white;
+            padding: 0;
+            height: 60px;
+            /* Fixed smaller height for mobile */
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            position: relative;
+            border-right: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+            overflow: hidden;
+        }
+
+        .calendar-cell:hover {
+            background-color: #fafbfc;
+        }
+
+        .calendar-cell.selected {
+            background-color: #e6f7ff;
+            box-shadow: 0 0 0 2px var(--primary-color) inset;
+            z-index: 10;
+        }
+
+        .calendar-cell.today {
+            background-color: #fff8e1;
+        }
+
+        .day-number-container {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            padding-top: 5px;
+        }
+
+        .day-number {
+            font-weight: 600;
+            font-size: 14px;
+            color: #555;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            z-index: 2;
+        }
+
+        .mark-circle {
+            border: 2px solid #e74c3c;
+            color: #e74c3c;
+            font-weight: bold;
+            background: white;
+            width: 18px;
+            /* Slightly smaller diameter */
+            height: 18px;
+            font-size: 12px;
+            /* Adjust font to fit */
+        }
+
+        .mark-x {
+            position: relative;
+            color: #95a5a6;
+        }
+
+        .mark-x::after,
+        .mark-x::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background-color: #e74c3c;
+            top: 50%;
+            left: 0;
+        }
+
+        .mark-x::after {
+            transform: rotate(45deg);
+        }
+
+        .mark-x::before {
+            transform: rotate(-45deg);
+        }
+
+        .events-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            overflow-y: hidden;
+            padding-top: 2px;
+        }
+
+        .event-pill {
+            font-size: 11px;
+            padding: 2px 4px;
+            /* Slightly tighter */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+            margin: 0 2px;
+            border-radius: 3px;
+            min-width: 0;
+            /* Crucial for shrinking inside grid */
+        }
+
+        /* Todo List Panel (Bottom Half) */
+        .right-panel {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 15px;
+            background-color: #fff;
+            display: flex;
+            flex-direction: column;
+            border-top: 2px solid #eee;
+        }
+
+        .todo-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .todo-header {
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .selected-date-display {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .todo-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 10px;
+            margin-bottom: 8px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #eee;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: grab;
+            width: 100%;
+            box-sizing: border-box;
+            min-width: 0;
+            /* Prevent flex pushout */
+        }
+
+        .todo-item:active {
+            cursor: grabbing;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transform: scale(1.02);
+        }
+
+        .todo-item.dragging {
+            opacity: 0.5;
+        }
+
+        .todo-checkbox {
+            width: 24px;
+            height: 24px;
+            margin-right: 15px;
+            cursor: pointer;
+            accent-color: var(--primary-color);
+        }
+
+        .todo-input {
+            flex-grow: 1;
+            border: none;
+            font-size: 16px;
+            padding: 8px 5px;
+            font-family: inherit;
+            background: transparent;
+            min-width: 0;
+            /* Let input shrink in flex container */
+            width: 100%;
+        }
+
+        .todo-input:focus {
+            outline: none;
+            background: #fff;
+            border-radius: 4px;
+        }
+
+        .todo-input.completed {
+            text-decoration: line-through;
+            color: #aaa;
+        }
+
+        /* Custom Color Swatch Palette CSS */
+        .color-picker-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        .swatch-trigger {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 1px #ddd;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .swatch-trigger:hover {
+            transform: scale(1.1);
+        }
+
+        .palette-popup {
+            display: none;
+            /* Hidden by default */
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 5px;
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            z-index: 1000;
+            width: 160px;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 5px;
+        }
+
+        .palette-popup.show {
+            display: grid;
+        }
+
+        .palette-color-item {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            transition: transform 0.1s;
+        }
+
+        .palette-color-item:hover {
+            transform: scale(1.2);
+            border: 1px solid #333;
+        }
+
+        /* Bottom Menu (iOS Style) */
+        .bottom-menu {
+            height: 70px;
+            /* Taller for touch targets */
+            padding-bottom: 20px;
+            /* Safe area padding for newer iPhones */
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            position: fixed;
+            /* Changed to fixed so it stays at the bottom of the screen */
+            bottom: 0;
+            width: 100%;
+            max-width: 480px;
+            /* Match main-content width */
+            z-index: 1000;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .bottom-menu.hidden {
+            transform: translateY(100%);
+        }
+
+        .menu-item {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            color: #8e8e93;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-item:hover,
+        .menu-item.active {
+            color: var(--primary-color);
+            background-color: transparent;
+        }
+
+        /* Settings CSS */
+        .settings-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .settings-container h2 {
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+        }
+
+        .setting-item {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 18px;
+        }
+
+        .setting-item input[type="color"] {
+            width: 40px;
+            height: 40px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .danger-zone {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px dotted #ccc;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        /* Auth Overlay */
+        #auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.3s;
+        }
+
+        .auth-card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            text-align: center;
+        }
+
+        .auth-card h2 {
+            margin: 0;
+            color: var(--primary-color);
+        }
+
+        .auth-card p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .auth-input {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .auth-btn {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #eee;
+            color: #333;
+        }
+
+        .auth-btn:hover {
+            opacity: 0.8;
+        }
+
+        .auth-error {
+            color: #e74c3c;
+            font-size: 13px;
+            min-height: 18px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-content">
+        <!-- Schedule View -->
+        <div id="schedule-view">
+            <div class="calendar-section">
+                <div class="calendar-header">
+                    <div class="header-left">
+                        <h2 id="current-month">2026년 1월</h2>
+                        <div class="calendar-nav">
+                            <button onclick="changeMonth(-1)">&lt;</button>
+                            <button onclick="goToToday()">Today</button>
+                            <button onclick="changeMonth(1)">&gt;</button>
+                        </div>
+                    </div>
+
+                    <div class="memo-wrapper">
+                        <h3 class="memo-title" id="memo-month-title">1월 목표</h3>
+                        <div class="memo-lines" id="memo-lines"></div>
+                    </div>
+                </div>
+
+                <div class="calendar-grid" id="calendar">
+                    <!-- Days generated by JS -->
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="todo-wrapper">
+                    <div class="todo-header">
+                        <div class="selected-date-display" id="selected-date-title">날짜를 선택하세요</div>
+                    </div>
+                    <ul class="todo-list" id="todo-list"></ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings View -->
+        <div id="settings-view" style="display: none;">
+            <div class="settings-container">
+                <h2>설정 (MY)</h2>
+                <div class="setting-item">
+                    <label>기본 할일 색상</label>
+                    <div class="color-picker-wrapper" id="settings-color-wrapper">
+                        <div class="swatch-trigger" id="setting-default-color-trigger"
+                            style="background-color: #ffb3ba;" onclick="togglePalette('settings-palette')"></div>
+                        <div class="palette-popup" id="settings-palette">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 30px; text-align: right;">
+                    <button onclick="saveSettings()" class="btn btn-primary">변경사항 저장</button>
+                </div>
+
+                <div class="setting-item">
+                    <label>현재 달(月) 할 일 초기화</label>
+                    <button onclick="clearCurrentMonth()" class="btn btn-danger">초기화</button>
+                </div>
+
+                <div class="danger-zone" style="text-align: center; margin-top: 50px;">
+                    <button onclick="handleLogout()" class="btn btn-secondary" style="width: 100%;">로그아웃 (계정
+                        전환)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auth Overlay -->
+        <div id="auth-overlay">
+            <div class="auth-card">
+                <h2>Hojin Schedule</h2>
+                <p>Login to sync your data across devices</p>
+                <div id="auth-error" class="auth-error"></div>
+                <input type="email" id="auth-email" class="auth-input" placeholder="Email (ex: test@test.com)">
+                <input type="password" id="auth-password" class="auth-input" placeholder="Password (min 6 chars)">
+                <button class="auth-btn btn-primary" onclick="handleLogin()">로그인</button>
+                <button class="auth-btn btn-secondary" onclick="handleSignup()">회원가입</button>
+            </div>
+        </div>
+    </div>
+
+    <nav class="bottom-menu">
+        <a href="#" class="menu-item active" id="menu-schedule" onclick="switchView('schedule')">
+            🗓 스케줄
+        </a>
+        <a href="#" class="menu-item" id="menu-settings" onclick="switchView('settings')">
+            ⚙️ 설정 (MY)
+        </a>
+    </nav>
+    </div>
+
+    <script>
+        // ====== Firebase Setup ======
+        const firebaseConfig = {
+            apiKey: "AIzaSyDPRFTO7qYhlJJyjOfb-8nsR7OLmyqVV9U",
+            authDomain: "hojin-schedule.firebaseapp.com",
+            projectId: "hojin-schedule",
+            storageBucket: "hojin-schedule.firebasestorage.app",
+            messagingSenderId: "38268072154",
+            appId: "1:38268072154:web:c73f3ce19d42abdfe175e3",
+            measurementId: "G-LWXJWBR9FM"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        let currentUser = null;
+
+        // ====== Auth UI Logic ======
+        const authOverlay = document.getElementById('auth-overlay');
+        const authEmailInput = document.getElementById('auth-email');
+        const authPwdInput = document.getElementById('auth-password');
+        const authError = document.getElementById('auth-error');
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                authOverlay.style.opacity = '0';
+                setTimeout(() => authOverlay.style.display = 'none', 300);
+                loadCloudData(); // Load user data from Firestore
+            } else {
+                currentUser = null;
+                authOverlay.style.display = 'flex';
+                setTimeout(() => authOverlay.style.opacity = '1', 10);
+            }
+        });
+
+        async function handleLogin() {
+            authError.innerText = '';
+            try {
+                await auth.signInWithEmailAndPassword(authEmailInput.value, authPwdInput.value);
+            } catch (error) {
+                authError.innerText = error.message;
+            }
+        }
+
+        async function handleSignup() {
+            authError.innerText = '';
+            try {
+                await auth.createUserWithEmailAndPassword(authEmailInput.value, authPwdInput.value);
+            } catch (error) {
+                authError.innerText = error.message;
+            }
+        }
+
+        function handleLogout() {
+            auth.signOut();
+            // Clear local states
+            scheduleData = {};
+            memoData = {};
+            dateMarks = {};
+            localStorage.clear();
+            renderCalendar();
+            renderTodos();
+            renderMemos();
+            switchView('schedule');
+        }
+
+        async function loadCloudData() {
+            if (!currentUser) return;
+            try {
+                const doc = await db.collection('users').doc(currentUser.uid).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    scheduleData = data.scheduleData || {};
+                    memoData = data.memoData || {};
+                    dateMarks = data.dateMarks || {};
+                    if (data.defaultColor) defaultColor = data.defaultColor;
+
+                    // Sync to local
+                    localStorage.setItem('scheduleData', JSON.stringify(scheduleData));
+                    localStorage.setItem('memoData', JSON.stringify(memoData));
+                    localStorage.setItem('dateMarks', JSON.stringify(dateMarks));
+                    localStorage.setItem('defaultColor', defaultColor);
+                }
+                renderCalendar();
+                renderMemos();
+                if (selectedDate) renderTodos();
+            } catch (e) {
+                console.error("Error loading cloud data:", e);
+            }
+        }
+
+        // Data & State
+        const PRESET_COLORS = [
+            '#ffb3ba', '#ffdfba', '#ffffba', '#baffc9', '#bae1ff', '#e8baff',
+            '#ff9999', '#ffcc99', '#ffff99', '#99ff99', '#99ccff', '#cc99ff',
+            '#ff6666', '#ffb366', '#ffff66', '#66ff66', '#66b3ff', '#b366ff',
+            '#ff3333', '#ff9933', '#ffff33', '#33ff33', '#3399ff', '#9933ff'
+        ];
+
+        let currentYear = 2026;
+        let currentMonth = 0;
+        let selectedDate = null;
+        let activePaletteId = null; // Track open palette
+
+        // Close palette if clicked outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.color-picker-wrapper')) {
+                document.querySelectorAll('.palette-popup').forEach(p => p.classList.remove('show'));
+                activePaletteId = null;
+            }
+        });
+
+        let defaultColor = localStorage.getItem('defaultColor') || '#ffb3ba';
+        let scheduleData = JSON.parse(localStorage.getItem('scheduleData')) || {};
+        let memoData = JSON.parse(localStorage.getItem('memoData')) || {};
+        let dateMarks = JSON.parse(localStorage.getItem('dateMarks')) || {};
+
+        // Initialize Settings Palette
+        document.addEventListener('DOMContentLoaded', () => {
+            const settingsPalette = document.getElementById('settings-palette');
+            const settingsTrigger = document.getElementById('setting-default-color-trigger');
+
+            PRESET_COLORS.forEach(colorHex => {
+                const swatch = document.createElement('div');
+                swatch.className = 'palette-color-item';
+                swatch.style.backgroundColor = colorHex;
+                swatch.onclick = (e) => {
+                    e.stopPropagation();
+                    defaultColor = colorHex;
+                    settingsTrigger.style.backgroundColor = colorHex;
+                    settingsPalette.classList.remove('show');
+                    activePaletteId = null;
+                };
+                settingsPalette.appendChild(swatch);
+            });
+
+            settingsTrigger.style.backgroundColor = defaultColor;
+        });
+
+        // Save Logic (Dual Save: Local + Cloud)
+        function syncToCloud() {
+            if (!currentUser) return;
+            db.collection('users').doc(currentUser.uid).set({
+                scheduleData: scheduleData,
+                memoData: memoData,
+                dateMarks: dateMarks,
+                defaultColor: defaultColor
+            }, { merge: true }).catch(e => console.error("Sync error:", e));
+        }
+
+        function saveSchedule() {
+            localStorage.setItem('scheduleData', JSON.stringify(scheduleData));
+            syncToCloud();
+        }
+        function saveMemo() {
+            localStorage.setItem('memoData', JSON.stringify(memoData));
+            syncToCloud();
+        }
+        function saveMarks() {
+            localStorage.setItem('dateMarks', JSON.stringify(dateMarks));
+            syncToCloud();
+        }
+
+        function saveSettings() {
+            localStorage.setItem('defaultColor', defaultColor);
+            syncToCloud();
+            renderCalendar();
+            renderTodos();
+            alert("저장되었습니다.");
+        }
+
+        function clearCurrentMonth() {
+            if (!confirm(`${currentYear}년 ${currentMonth + 1}월의 모든 할 일 데이터를 초기화하시겠습니까?`)) return;
+
+            // Clear days belonging to current month
+            const yearMonthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+            Object.keys(scheduleData).forEach(key => {
+                if (key.startsWith(yearMonthStr)) delete scheduleData[key];
+            });
+
+            // Clear memo for current month
+            delete memoData[yearMonthStr];
+
+            saveSchedule();
+            saveMemo();
+            renderCalendar();
+            if (selectedDate && selectedDate.startsWith(yearMonthStr)) {
+                renderTodos();
+            }
+            renderMemos();
+            alert(`${currentYear}년 ${currentMonth + 1}월 초기화 완료`);
+        }
+
+        function switchView(viewName) {
+            document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+            document.getElementById('schedule-view').style.display = 'none';
+            document.getElementById('settings-view').style.display = 'none';
+
+            if (viewName === 'schedule') {
+                document.getElementById('schedule-view').style.display = 'flex';
+                document.getElementById('menu-schedule').classList.add('active');
+            } else if (viewName === 'settings') {
+                document.getElementById('settings-view').style.display = 'block';
+                document.getElementById('menu-settings').classList.add('active');
+            }
+        }
+
+        // Multi-click
+        let clickCounts = {};
+        let clickTimers = {};
+
+        function onCellClick(e, dateStr) {
+            if (e.target.tagName.toLowerCase() === 'input') return; // Ignore input clicks
+
+            // Immediately switch the right panel view
+            selectDate(dateStr);
+
+            clickCounts[dateStr] = (clickCounts[dateStr] || 0) + 1;
+            if (clickTimers[dateStr]) clearTimeout(clickTimers[dateStr]);
+
+            clickTimers[dateStr] = setTimeout(() => {
+                let count = clickCounts[dateStr];
+                clickCounts[dateStr] = 0;
+
+                if (count === 2) {
+                    if (dateMarks[dateStr] === 'circle') delete dateMarks[dateStr];
+                    else dateMarks[dateStr] = 'circle';
+                    saveMarks();
+                    renderCalendar();
+                } else if (count >= 3) {
+                    if (dateMarks[dateStr] === 'x') delete dateMarks[dateStr];
+                    else dateMarks[dateStr] = 'x';
+                    saveMarks();
+                    renderCalendar();
+                }
+            }, 250);
+        }
+
+        // Render Calendar
+        function renderCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            calendarEl.innerHTML = '';
+
+            document.getElementById('current-month').innerText = `${currentYear}년 ${currentMonth + 1}월`;
+
+            const days = ['일', '월', '화', '수', '목', '금', '토'];
+            days.forEach((d, index) => {
+                const cel = document.createElement('div');
+                cel.className = 'day-header';
+                if (index === 0) cel.classList.add('sunday');
+                if (index === 6) cel.classList.add('saturday');
+                cel.innerText = d;
+                calendarEl.appendChild(cel);
+            });
+
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            const lastDay = new Date(currentYear, currentMonth + 1, 0);
+
+            for (let i = 0; i < firstDay.getDay(); i++) {
+                const cel = document.createElement('div');
+                cel.className = 'calendar-cell empty';
+                cel.style.pointerEvents = 'none';
+                cel.style.backgroundColor = '#f9f9f9';
+                calendarEl.appendChild(cel);
+            }
+
+            for (let d = 1; d <= lastDay.getDate(); d++) {
+                const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+
+                const cel = document.createElement('div');
+                cel.className = 'calendar-cell';
+                if (dateKey === selectedDate) cel.classList.add('selected');
+
+                const now = new Date();
+                if (currentYear === now.getFullYear() && currentMonth === now.getMonth() && d === now.getDate()) {
+                    cel.classList.add('today');
+                }
+
+                let markClass = '';
+                if (dateMarks[dateKey] === 'circle') markClass = 'mark-circle';
+                else if (dateMarks[dateKey] === 'x') markClass = 'mark-x';
+
+                cel.onclick = (e) => onCellClick(e, dateKey);
+
+                let html = `<div class="day-number-container"><div class="day-number ${markClass}">${d}</div></div><div class="events-container">`;
+
+                const tasks = scheduleData[dateKey] || [];
+                tasks.forEach(t => {
+                    if (t.text) {
+                        let bg = t.color || defaultColor;
+                        let fontColor = '#000';
+                        let border = `1px solid ${bg}`;
+                        let textDecor = t.checked ? 'line-through' : 'none';
+                        let opacity = t.checked ? '0.5' : '1';
+                        html += `<div class="event-pill" style="background:${bg}; color:${fontColor}; border:${border}; text-decoration:${textDecor}; opacity:${opacity};">${t.text}</div>`;
+                    }
+                });
+
+                html += `</div>`;
+                cel.innerHTML = html;
+                calendarEl.appendChild(cel);
+            }
+        }
+
+        // Render Memos
+        function renderMemos() {
+            const memoMonthKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+            document.getElementById('memo-month-title').innerText = `${currentMonth + 1}월 목표`;
+
+            if (!memoData[memoMonthKey]) {
+                memoData[memoMonthKey] = Array(8).fill(''); // Reduced to 8 lines to save space
+            }
+            const memos = memoData[memoMonthKey];
+            const memoLinesEl = document.getElementById('memo-lines');
+            memoLinesEl.innerHTML = '';
+
+            memos.forEach((memo, index) => {
+                if (index >= 8) return;
+                const div = document.createElement('div');
+                div.className = 'memo-line';
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = memo;
+                input.placeholder = `목표 ${index + 1}`;
+                input.onblur = (e) => {
+                    memoData[memoMonthKey][index] = e.target.value;
+                    saveMemo();
+                };
+                input.onkeydown = (e) => { if (e.key === 'Enter') input.blur(); };
+                div.appendChild(input);
+                memoLinesEl.appendChild(div);
+            });
+        }
+
+        let dragItemIndex = null;
+
+        // Render Todos
+        function renderTodos() {
+            if (!selectedDate) return;
+            document.getElementById('selected-date-title').innerText = selectedDate;
+            const todoListEl = document.getElementById('todo-list');
+            todoListEl.innerHTML = '';
+
+            if (!scheduleData[selectedDate]) {
+                scheduleData[selectedDate] = Array(10).fill().map(() => ({ text: '', checked: false, color: null }));
+            }
+            const tasks = scheduleData[selectedDate];
+
+            tasks.forEach((task, index) => {
+                if (index >= 10) return;
+
+                const li = document.createElement('li');
+                li.className = 'todo-item';
+                li.draggable = true;
+
+                li.ondragstart = (e) => {
+                    dragItemIndex = index;
+                    li.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                };
+                li.ondragend = () => {
+                    li.classList.remove('dragging');
+                    dragItemIndex = null;
+                };
+                li.ondragover = (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                };
+                li.ondrop = (e) => {
+                    e.preventDefault();
+                    if (dragItemIndex === null || dragItemIndex === index) return;
+                    let targetList = scheduleData[selectedDate];
+                    let draggedItem = targetList.splice(dragItemIndex, 1)[0];
+                    targetList.splice(index, 0, draggedItem);
+
+                    while (targetList.length < 10) {
+                        targetList.push({ text: '', checked: false, color: null });
+                    }
+                    scheduleData[selectedDate] = targetList.slice(0, 10);
+
+                    saveSchedule();
+                    renderTodos();
+                    renderCalendar();
+                };
+
+                let effectiveColor = task.color || defaultColor;
+                if (task.checked) {
+                    li.style.borderLeftColor = effectiveColor;
+                    li.style.backgroundColor = effectiveColor + '30';
+                } else {
+                    li.style.borderLeftColor = '#eee';
+                    li.style.backgroundColor = '#f9f9f9';
+                }
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'todo-checkbox';
+                checkbox.checked = task.checked;
+                checkbox.onchange = () => {
+                    task.checked = checkbox.checked;
+                    saveSchedule();
+                    renderTodos();
+                    renderCalendar();
+                };
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = `todo-input ${task.checked ? 'completed' : ''}`;
+                input.value = task.text;
+                input.placeholder = "할 일을 입력하세요";
+                input.onblur = (e) => {
+                    task.text = e.target.value;
+                    saveSchedule();
+                    renderCalendar();
+                };
+                input.oninput = (e) => {
+                    task.text = e.target.value;
+                    renderCalendar();
+                };
+                input.onkeydown = (e) => { if (e.key === 'Enter') input.blur(); };
+
+                // Custom Color Picker Wrapper
+                const colorPickerWrapper = document.createElement('div');
+                colorPickerWrapper.className = 'color-picker-wrapper';
+
+                const swatchTrigger = document.createElement('div');
+                swatchTrigger.className = 'swatch-trigger';
+                swatchTrigger.style.backgroundColor = task.color || defaultColor;
+                swatchTrigger.title = "항목 색상 변경";
+
+                const palettePopup = document.createElement('div');
+                palettePopup.className = 'palette-popup';
+                const popupId = 'palette-' + index;
+                palettePopup.id = popupId;
+
+                swatchTrigger.onclick = (e) => {
+                    togglePalette(popupId);
+                };
+
+                PRESET_COLORS.forEach(colorHex => {
+                    const swatch = document.createElement('div');
+                    swatch.className = 'palette-color-item';
+                    swatch.style.backgroundColor = colorHex;
+                    swatch.onclick = (e) => {
+                        e.stopPropagation(); // Prevent document click from closing immediately before processing
+                        task.color = colorHex;
+                        swatchTrigger.style.backgroundColor = colorHex;
+                        palettePopup.classList.remove('show');
+                        activePaletteId = null;
+
+                        saveSchedule();
+                        renderTodos();
+                        renderCalendar(); // React immediately
+                    };
+                    palettePopup.appendChild(swatch);
+                });
+
+                colorPickerWrapper.appendChild(swatchTrigger);
+                colorPickerWrapper.appendChild(palettePopup);
+
+                li.appendChild(checkbox);
+                li.appendChild(input);
+                li.appendChild(colorPickerWrapper);
+                todoListEl.appendChild(li);
+            });
+        }
+
+        function togglePalette(paletteId) {
+            const popup = document.getElementById(paletteId);
+            // Close any currently open palette
+            document.querySelectorAll('.palette-popup').forEach(p => {
+                if (p.id !== paletteId) p.classList.remove('show');
+            });
+
+            if (popup.classList.contains('show')) {
+                popup.classList.remove('show');
+                activePaletteId = null;
+            } else {
+                popup.classList.add('show');
+                activePaletteId = paletteId;
+            }
+        }
+
+        // Setup & Nav
+        function selectDate(dateStr) {
+            selectedDate = dateStr;
+            renderCalendar();
+            renderTodos();
+        }
+
+        function changeMonth(delta) {
+            currentMonth += delta;
+            if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+            else if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+            renderCalendar();
+            renderMemos();
+        }
+
+        function goToToday() {
+            const now = new Date();
+            currentYear = 2026;
+            currentMonth = 0;
+            if (now.getFullYear() === 2026) {
+                currentMonth = now.getMonth();
+                const dKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                selectDate(dKey);
+            } else {
+                selectDate('2026-01-01');
+            }
+            renderMemos();
+        }
+
+        // Hide bottom menu when scrolling down
+        window.addEventListener('scroll', () => {
+            const bottomMenu = document.querySelector('.bottom-menu');
+            if (window.scrollY > 10) {
+                bottomMenu.classList.add('hidden');
+            } else {
+                bottomMenu.classList.remove('hidden');
+            }
+        });
+
+        // Init
+        goToToday();
+    </script>
+</body>
+
+</html>
