@@ -20,23 +20,26 @@
             --bg-color: #f5f7fa;
             --text-color: #333;
             --range-color: #1abc9c;
-            /* A prettier teal/green */
+            --glass-bg: rgba(255, 255, 255, 0.45);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.4);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            --glass-blur: blur(16px);
         }
 
         body {
             font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: var(--bg-color);
             color: var(--text-color);
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            /* Start at top so it can scroll down */
             min-height: 100vh;
             overflow-y: auto;
-            /* Allow vertical scrolling */
-            background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            /* Vibrant Pastel Mesh Gradient for Glassmorphism */
+            background-color: #ffecd2;
+            background-image: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%);
+            background-attachment: fixed;
         }
 
         .main-content {
@@ -44,16 +47,18 @@
             flex-direction: column;
             width: 100%;
             max-width: 480px;
-            background-color: white;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+
+            /* Glassmorphism Main Body */
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-left: var(--glass-border);
+            border-right: var(--glass-border);
+            box-shadow: var(--glass-shadow);
+
             position: relative;
             min-height: 100vh;
-            /* Fill screen vertically but allow growing and scrolling */
-            /* Removed overflow: hidden causing clipping */
             border-radius: 0;
-            /* Remove rounded corners to fit full height scroll */
-            border-left: 2px solid #ddd;
-            border-right: 2px solid #ddd;
         }
 
         #schedule-view {
@@ -62,7 +67,6 @@
             width: 100%;
             flex: 1;
             padding-bottom: 90px;
-            /* Space for bottom nav */
         }
 
         #settings-view {
@@ -70,11 +74,10 @@
             height: 100%;
             display: none;
             padding: 20px;
-            background: white;
+            background: transparent;
             box-sizing: border-box;
             overflow-y: auto;
             padding-bottom: 70px;
-            /* Space for bottom nav */
         }
 
         /* Calendar Section (Top Half) */
@@ -83,10 +86,9 @@
             min-width: 0;
             box-sizing: border-box;
             padding: 10px;
-            /* Reduced for mobile */
             display: flex;
             flex-direction: column;
-            background: white;
+            background: transparent;
             user-select: none;
         }
 
@@ -204,40 +206,32 @@
         .calendar-grid {
             width: 100%;
             min-width: 0;
-            /* Critical for CSS grid to shrink below max-content */
             box-sizing: border-box;
             display: grid;
             grid-template-columns: repeat(7, minmax(0, 1fr));
-            /* Force equal flexible columns that can shrink */
             gap: 0;
-            /* NO GAP */
             flex-grow: 1;
             overflow-y: auto;
             padding: 0 5px;
             padding-bottom: 20px;
-            border-top: 1px solid #ddd;
-            border-left: 1px solid #ddd;
+            border-top: var(--glass-border);
+            border-left: var(--glass-border);
             -ms-overflow-style: none;
-            /* IE and Edge */
             scrollbar-width: none;
-            /* Firefox */
         }
 
         .calendar-grid::-webkit-scrollbar {
             display: none;
-            /* Chrome, Safari and Opera */
         }
 
         .day-header {
             text-align: center;
             padding: 5px 2px;
-            /* Less padding to fit in narrow screen */
             font-weight: 600;
             color: #222;
-            /* Mon-Fri stark black default */
             font-size: 13px;
-            border-right: 1px solid #ddd;
-            border-bottom: 1px solid #ddd;
+            border-right: var(--glass-border);
+            border-bottom: var(--glass-border);
             overflow: hidden;
             text-overflow: ellipsis;
         }
@@ -251,33 +245,32 @@
         }
 
         .calendar-cell {
-            background-color: white;
+            background-color: rgba(255, 255, 255, 0.2);
             padding: 0;
             height: 60px;
-            /* Fixed smaller height for mobile */
             min-height: 60px;
             display: flex;
             flex-direction: column;
             cursor: pointer;
             transition: background-color 0.2s;
             position: relative;
-            border-right: 1px solid #ddd;
-            border-bottom: 1px solid #ddd;
+            border-right: var(--glass-border);
+            border-bottom: var(--glass-border);
             overflow: hidden;
         }
 
         .calendar-cell:hover {
-            background-color: #fafbfc;
+            background-color: rgba(255, 255, 255, 0.4);
         }
 
         .calendar-cell.selected {
-            background-color: #e6f7ff;
+            background-color: rgba(255, 255, 255, 0.6);
             box-shadow: 0 0 0 2px var(--primary-color) inset;
             z-index: 10;
         }
 
         .calendar-cell.today {
-            background-color: #fff8e1;
+            background-color: rgba(255, 250, 208, 0.5);
         }
 
         .day-number-container {
@@ -364,10 +357,10 @@
             width: 100%;
             box-sizing: border-box;
             padding: 15px;
-            background-color: #fff;
+            background-color: transparent;
             display: flex;
             flex-direction: column;
-            border-top: 2px solid #eee;
+            border-top: var(--glass-border);
         }
 
         .todo-wrapper {
@@ -378,7 +371,7 @@
         .todo-header {
             padding-bottom: 10px;
             margin-bottom: 10px;
-            border-bottom: 2px solid #eee;
+            border-bottom: var(--glass-border);
         }
 
         .selected-date-display {
@@ -399,21 +392,28 @@
             align-items: center;
             padding: 8px 10px;
             margin-bottom: 8px;
-            background: #f9f9f9;
+
+            /* Glassmorphism item */
+            background: rgba(255, 255, 255, 0.4);
+            border: var(--glass-border);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+
             border-radius: 8px;
             border-left: 4px solid #eee;
-            transition: transform 0.2s, box-shadow 0.2s;
+            /* Overridden by JS */
+            transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
             cursor: grab;
             width: 100%;
             box-sizing: border-box;
             min-width: 0;
-            /* Prevent flex pushout */
         }
 
         .todo-item:active {
             cursor: grabbing;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             transform: scale(1.02);
+            background: rgba(255, 255, 255, 0.6);
         }
 
         .todo-item.dragging {
@@ -436,13 +436,13 @@
             font-family: inherit;
             background: transparent;
             min-width: 0;
-            /* Let input shrink in flex container */
+            color: #333;
             width: 100%;
         }
 
         .todo-input:focus {
             outline: none;
-            background: #fff;
+            background: rgba(255, 255, 255, 0.5);
             border-radius: 4px;
         }
 
@@ -511,16 +511,18 @@
         /* Bottom Menu (iOS Style) */
         .bottom-menu {
             height: 70px;
-            /* Taller for touch targets */
             padding-bottom: 20px;
-            /* Safe area padding for newer iPhones */
-            background-color: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
+
+            /* Glassmorphism Navigation */
+            background-color: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-top: var(--glass-border);
+            box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.05);
+
             display: flex;
             justify-content: space-around;
             align-items: center;
-            border-top: 1px solid rgba(0, 0, 0, 0.1);
             position: fixed;
             /* Changed to fixed so it stays at the bottom of the screen */
             bottom: 0;
@@ -615,9 +617,9 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             z-index: 9999;
             display: flex;
             flex-direction: column;
@@ -627,10 +629,13 @@
         }
 
         .auth-card {
-            background: white;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: var(--glass-border);
             padding: 30px;
             border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             width: 90%;
             max-width: 320px;
             display: flex;
@@ -695,17 +700,21 @@
         #routine-modal {
             position: fixed;
             bottom: -100%;
-            /* Hidden off-screen initially */
             left: 50%;
             transform: translateX(-50%);
             width: 100%;
             max-width: 480px;
-            background: white;
-            border-radius: 20px 20px 0 0;
-            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.15);
+
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: var(--glass-border);
+
+            border-radius: 24px 24px 0 0;
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.1);
             z-index: 2000;
-            transition: bottom 0.3s ease-out;
-            padding: 20px;
+            transition: bottom 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
+            padding: 24px 20px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
@@ -720,7 +729,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid #eee;
+            border-bottom: var(--glass-border);
             padding-bottom: 10px;
         }
 
