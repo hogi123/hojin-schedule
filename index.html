@@ -690,6 +690,107 @@
             font-size: 13px;
             min-height: 18px;
         }
+
+        /* Routine Bottom Sheet Modal */
+        #routine-modal {
+            position: fixed;
+            bottom: -100%;
+            /* Hidden off-screen initially */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: white;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.15);
+            z-index: 2000;
+            transition: bottom 0.3s ease-out;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        #routine-modal.show {
+            bottom: 0;
+        }
+
+        .routine-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .routine-header h3 {
+            margin: 0;
+            color: var(--primary-color);
+        }
+
+        .routine-close {
+            cursor: pointer;
+            font-size: 20px;
+            color: #999;
+        }
+
+        .routine-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .routine-form-group label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .routine-form-group input,
+        .routine-form-group select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+        }
+
+        /* Routine Toggle Button */
+        .routine-trigger-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px;
+            color: #888;
+            transition: transform 0.2s, color 0.2s;
+            margin-right: 5px;
+        }
+
+        .routine-trigger-btn:hover {
+            color: var(--primary-color);
+            transform: rotate(90deg);
+        }
+
+        /* Dim Background for Modal */
+        #dim-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 1999;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        #dim-overlay.show {
+            display: block;
+            opacity: 1;
+        }
     </style>
 </head>
 
@@ -773,9 +874,43 @@
         </div>
     </div>
 
+    <!-- Dim Overlay -->
+    <div id="dim-overlay" onclick="closeRoutineModal()"></div>
+
+    <!-- Routine Modal -->
+    <div id="routine-modal">
+        <div class="routine-header">
+            <h3>반복 루틴 설정</h3>
+            <span class="routine-close" onclick="closeRoutineModal()">✕</span>
+        </div>
+
+        <div class="routine-form-group">
+            <label>기준 날짜 (시작일)</label>
+            <input type="text" id="routine-start-date" readonly disabled>
+        </div>
+
+        <div class="routine-form-group">
+            <label>종료 날짜</label>
+            <input type="date" id="routine-end-date">
+        </div>
+
+        <div class="routine-form-group">
+            <label>반복 주기</label>
+            <select id="routine-frequency">
+                <option value="1">매일 (Daily)</option>
+                <option value="2">격일 (Every 2 days)</option>
+                <option value="7">매주 (Weekly)</option>
+                <option value="14">격주 (Bi-weekly)</option>
+            </select>
+        </div>
+
+        <button class="btn btn-primary" style="margin-top: 10px;" onclick="applyRoutine()">루틴 생성하기</button>
+    </div>
+
     <nav class="bottom-menu">
-        <a href="#" class="menu-item active" id="menu-schedule" onclick="switchView('schedule')">
-            🗓 스케줄
+        <a class="menu-item active" onclick="switchTab('schedule', this)">
+            <span>1📅</span>
+            <span>스케줄</span>
         </a>
         <a href="#" class="menu-item" id="menu-settings" onclick="switchView('settings')">
             ⚙️ 설정 (MY)
@@ -887,6 +1022,7 @@
         let currentMonth = 0;
         let selectedDate = null;
         let activePaletteId = null; // Track open palette
+        let currentRoutineTaskIndex = null; // Track which task is opening the routine modal
 
         // Close palette if clicked outside
         document.addEventListener('click', (e) => {
@@ -1245,8 +1381,19 @@
                 colorPickerWrapper.appendChild(swatchTrigger);
                 colorPickerWrapper.appendChild(palettePopup);
 
+                // Routine Trigger Button
+                const routineBtn = document.createElement('button');
+                routineBtn.className = 'routine-trigger-btn';
+                routineBtn.innerHTML = '🔄';
+                routineBtn.title = "반복 루틴 설정";
+                routineBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    openRoutineModal(index);
+                };
+
                 li.appendChild(checkbox);
                 li.appendChild(input);
+                li.appendChild(routineBtn);
                 li.appendChild(colorPickerWrapper);
                 todoListEl.appendChild(li);
             });
@@ -1266,6 +1413,78 @@
                 popup.classList.add('show');
                 activePaletteId = paletteId;
             }
+        }
+
+        // Routine Functions
+        function openRoutineModal(taskIndex) {
+            const task = scheduleData[selectedDate][taskIndex];
+            if (!task || !task.text) {
+                alert("먼저 할 일을 입력한 후 루틴을 설정해주세요.");
+                return;
+            }
+            currentRoutineTaskIndex = taskIndex;
+            document.getElementById('routine-start-date').value = selectedDate;
+
+            // Set default end date to 1 month from now
+            const startD = new Date(selectedDate);
+            startD.setMonth(startD.getMonth() + 1);
+            document.getElementById('routine-end-date').value = startD.toISOString().split('T')[0];
+
+            document.getElementById('dim-overlay').classList.add('show');
+            document.getElementById('routine-modal').classList.add('show');
+        }
+
+        function closeRoutineModal() {
+            document.getElementById('dim-overlay').classList.remove('show');
+            document.getElementById('routine-modal').classList.remove('show');
+            currentRoutineTaskIndex = null;
+        }
+
+        function applyRoutine() {
+            if (currentRoutineTaskIndex === null) return;
+
+            const taskToRepeat = scheduleData[selectedDate][currentRoutineTaskIndex];
+            const startDateStr = document.getElementById('routine-start-date').value;
+            const endDateStr = document.getElementById('routine-end-date').value;
+            const freqDays = parseInt(document.getElementById('routine-frequency').value, 10);
+
+            if (!endDateStr) {
+                alert("종료 날짜를 선택해주세요.");
+                return;
+            }
+
+            let currentStr = startDateStr;
+            let addedCount = 0;
+
+            // Generate sequence
+            while (true) {
+                let d = new Date(currentStr);
+                d.setDate(d.getDate() + freqDays);
+                currentStr = d.toISOString().split('T')[0];
+
+                if (currentStr > endDateStr) break;
+
+                // Add to scheduleData
+                if (!scheduleData[currentStr]) {
+                    scheduleData[currentStr] = Array(10).fill().map(() => ({ text: '', checked: false, color: null }));
+                }
+
+                // Find first empty slot
+                let slotIndex = scheduleData[currentStr].findIndex(t => t.text === '');
+                if (slotIndex !== -1) {
+                    scheduleData[currentStr][slotIndex] = {
+                        text: taskToRepeat.text,
+                        checked: false,
+                        color: taskToRepeat.color || defaultColor
+                    };
+                    addedCount++;
+                }
+            }
+
+            saveSchedule();
+            renderCalendar();
+            closeRoutineModal();
+            alert(`루틴 생성 완료! 총 ${addedCount}개의 일정이 추가되었습니다.`);
         }
 
         // Setup & Nav
