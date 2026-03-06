@@ -388,7 +388,6 @@
             position: relative;
             width: 100%;
             margin-bottom: 8px;
-            overflow: hidden;
             border-radius: 8px;
             background-color: transparent;
             touch-action: pan-y;
@@ -437,6 +436,8 @@
             /* Occupies full height and width behind the main item */
             width: 100%;
             height: 100%;
+            border-radius: 8px;
+            /* Match container radius since overflow is no longer hidden */
         }
 
         .todo-item.dragging {
