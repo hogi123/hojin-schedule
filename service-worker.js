@@ -1,4 +1,4 @@
-const CACHE_NAME = 'schedule-app-v2'; // Bump version
+const CACHE_NAME = 'schedule-app-v3'; // Bump version to force routine update
 const urlsToCache = [
   './index.html',
   './manifest.json'
