@@ -402,7 +402,7 @@
             border-radius: 8px;
             border-left: 4px solid #eee;
             /* Overridden by JS */
-            transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+            transition: box-shadow 0.2s, background 0.2s;
             cursor: grab;
             width: 100%;
             box-sizing: border-box;
@@ -412,7 +412,6 @@
         .todo-item:active {
             cursor: grabbing;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            transform: scale(1.02);
             background: rgba(255, 255, 255, 0.6);
         }
 
@@ -482,9 +481,9 @@
             background: #fff;
             border: 1px solid #eee;
             border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             padding: 10px;
-            z-index: 1000;
+            z-index: 9999;
             width: 160px;
             grid-template-columns: repeat(6, 1fr);
             gap: 5px;
@@ -1411,16 +1410,22 @@
 
         function togglePalette(paletteId) {
             const popup = document.getElementById(paletteId);
-            // Close any currently open palette
+
+            // Close any currently open palette and reset their parent's z-index
             document.querySelectorAll('.palette-popup').forEach(p => {
-                if (p.id !== paletteId) p.classList.remove('show');
+                if (p.id !== paletteId) {
+                    p.classList.remove('show');
+                    p.closest('.todo-item').style.zIndex = '1';
+                }
             });
 
             if (popup.classList.contains('show')) {
                 popup.classList.remove('show');
+                popup.closest('.todo-item').style.zIndex = '1';
                 activePaletteId = null;
             } else {
                 popup.classList.add('show');
+                popup.closest('.todo-item').style.zIndex = '999';
                 activePaletteId = paletteId;
             }
         }
