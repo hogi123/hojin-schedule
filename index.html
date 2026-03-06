@@ -917,12 +917,13 @@
     </div>
 
     <nav class="bottom-menu">
-        <a class="menu-item active" onclick="switchTab('schedule', this)">
-            <span>1📅</span>
+        <a class="menu-item active" id="nav-schedule" onclick="switchTab('schedule-view')">
+            <span style="font-size: 24px; margin-bottom: 5px;">📅</span>
             <span>스케줄</span>
         </a>
-        <a href="#" class="menu-item" id="menu-settings" onclick="switchView('settings')">
-            ⚙️ 설정 (MY)
+        <a class="menu-item" id="nav-settings" onclick="switchTab('settings-view')">
+            <span style="font-size: 24px; margin-bottom: 5px;">⚙️</span>
+            <span>설정 (MY)</span>
         </a>
     </nav>
     </div>
@@ -1497,6 +1498,26 @@
         }
 
         // Setup & Nav
+        window.switchTab = function (tabId) {
+            // Update Active Class on Nav
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            if (tabId === 'schedule-view') {
+                document.getElementById('nav-schedule').classList.add('active');
+            } else {
+                document.getElementById('nav-settings').classList.add('active');
+            }
+
+            // Show/Hide Views
+            document.getElementById('schedule-view').style.display = (tabId === 'schedule-view') ? 'flex' : 'none';
+            document.getElementById('settings-view').style.display = (tabId === 'settings-view') ? 'block' : 'none';
+
+            // Re-render when switching back to schedule
+            if (tabId === 'schedule-view') {
+                renderCalendar();
+                renderTodos();
+            }
+        };
+
         function selectDate(dateStr) {
             selectedDate = dateStr;
             renderCalendar();
