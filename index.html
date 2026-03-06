@@ -411,6 +411,7 @@
             width: 100%;
             box-sizing: border-box;
             min-width: 0;
+            position: relative;
         }
 
         .todo-item:active {
@@ -1419,17 +1420,20 @@
             document.querySelectorAll('.palette-popup').forEach(p => {
                 if (p.id !== paletteId) {
                     p.classList.remove('show');
-                    p.closest('.todo-item').style.zIndex = '1';
+                    const item = p.closest('.todo-item');
+                    if (item) item.style.zIndex = '';
                 }
             });
 
             if (popup.classList.contains('show')) {
                 popup.classList.remove('show');
-                popup.closest('.todo-item').style.zIndex = '1';
+                const item = popup.closest('.todo-item');
+                if (item) item.style.zIndex = '';
                 activePaletteId = null;
             } else {
                 popup.classList.add('show');
-                popup.closest('.todo-item').style.zIndex = '999';
+                const item = popup.closest('.todo-item');
+                if (item) item.style.zIndex = '999';
                 activePaletteId = paletteId;
             }
         }
