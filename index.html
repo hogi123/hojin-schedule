@@ -423,21 +423,22 @@
         .todo-delete-btn {
             position: absolute;
             top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            right: 0;
             background-color: #ff3b30;
             color: white;
             display: flex;
             align-items: center;
-            justify-content: flex-start;
-            padding-left: 20px;
+            justify-content: flex-end;
+            padding-right: 20px;
             font-weight: bold;
             font-size: 14px;
             cursor: pointer;
             z-index: 1;
             opacity: 0;
             transition: opacity 0.2s;
+            /* Occupies full height and width behind the main item */
+            width: 100%;
+            height: 100%;
         }
 
         .todo-item.dragging {
@@ -1393,11 +1394,11 @@
 
                     deleteBtn.style.opacity = '1'; // Show red background only when swiping
 
-                    // Only allow swiping RIGHT (positive deltaX) up to 80px
-                    if (deltaX > 0 && deltaX < 85) {
+                    // Only allow swiping LEFT (negative deltaX) up to -85px
+                    if (deltaX < 0 && deltaX > -85) {
                         li.style.transform = `translateX(${deltaX}px)`;
-                    } else if (deltaX >= 85) {
-                        li.style.transform = `translateX(85px)`; // Elastic limit
+                    } else if (deltaX <= -85) {
+                        li.style.transform = `translateX(-85px)`; // Elastic limit
                     }
                 }, { passive: false });
 
@@ -1408,9 +1409,9 @@
 
                     li.style.transition = 'transform 0.2s cubic-bezier(0.25, 1, 0.5, 1)';
 
-                    if (deltaX > 40) {
-                        // Snap open (70px is width of delete button)
-                        li.style.transform = `translateX(70px)`;
+                    if (deltaX < -40) {
+                        // Snap open (-70px is width of delete button)
+                        li.style.transform = `translateX(-70px)`;
 
                         // Auto-close if clicking anywhere else
                         const closeSwipe = (evt) => {
