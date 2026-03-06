@@ -40,6 +40,8 @@
             background-color: #f5f7fa;
             background-image: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
             background-attachment: fixed;
+            overflow-x: hidden;
+            /* Prevent horizontal page shaking on swipe */
         }
 
         .main-content {
@@ -90,6 +92,8 @@
             flex-direction: column;
             background: transparent;
             user-select: none;
+            overflow-x: hidden;
+            /* Prevent horizontal container stretching */
         }
 
         .calendar-header {
@@ -1595,26 +1599,46 @@
 
         // Touch Swipe Navigation for Calendar (Native Feel)
         let touchStartX = 0;
+        let touchStartY = 0;
         let touchCurrentX = 0;
         let isSwiping = false;
+        let swipeDirectionDetermined = false;
         const calendarEl = document.getElementById('calendar');
 
         calendarEl.addEventListener('touchstart', e => {
             if (isMonthAnimating) return;
             touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
             touchCurrentX = touchStartX;
             isSwiping = true;
+            swipeDirectionDetermined = false;
             calendarEl.style.transition = 'none'; // Disable transition for 1:1 finger tracking
         }, { passive: true });
 
         calendarEl.addEventListener('touchmove', e => {
             if (!isSwiping || isMonthAnimating) return;
+            const currentY = e.changedTouches[0].screenY;
             touchCurrentX = e.changedTouches[0].screenX;
+
             const deltaX = touchCurrentX - touchStartX;
+            const deltaY = currentY - touchStartY;
+
+            if (!swipeDirectionDetermined) {
+                // If moving more vertically than horizontally, it's a scroll
+                if (Math.abs(deltaY) > Math.abs(deltaX)) {
+                    isSwiping = false;
+                    calendarEl.style.transform = '';
+                    return;
+                }
+                swipeDirectionDetermined = true;
+            }
+
+            // Only horizontal swipes reach here, prevent page bouncy/scrolling
+            if (e.cancelable) e.preventDefault();
 
             // Drag the calendar grid directly with the finger
             calendarEl.style.transform = `translateX(${deltaX}px)`;
-        }, { passive: true });
+        }, { passive: false });
 
         calendarEl.addEventListener('touchend', e => {
             if (!isSwiping || isMonthAnimating) return;
