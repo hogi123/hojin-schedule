@@ -799,39 +799,6 @@
             display: block;
             opacity: 1;
         }
-
-        /* Swipe Animations */
-        @keyframes slideLeft {
-            from {
-                transform: translateX(50px);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        @keyframes slideRight {
-            from {
-                transform: translateX(-50px);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        .calendar-grid.slide-left {
-            animation: slideLeft 0.3s ease-out;
-        }
-
-        .calendar-grid.slide-right {
-            animation: slideRight 0.3s ease-out;
-        }
     </style>
 </head>
 
@@ -1562,12 +1529,54 @@
             renderTodos();
         }
 
-        function changeMonth(delta) {
-            currentMonth += delta;
-            if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-            else if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-            renderCalendar();
-            renderMemos();
+        let isMonthAnimating = false;
+
+        function changeMonth(delta, isFromSwipe = false, currentSwipeX = 0) {
+            if (isMonthAnimating) return;
+            isMonthAnimating = true;
+
+            const grid = document.getElementById('calendar');
+            const direction = delta > 0 ? -1 : 1;
+
+            // 1. Slide Out Old Month
+            grid.style.transition = 'transform 0.2s ease-in, opacity 0.2s';
+            if (isFromSwipe) {
+                // Continue slide from the finger's current position to offscreen
+                const exitX = delta > 0 ? (currentSwipeX - window.innerWidth / 2) : (currentSwipeX + window.innerWidth / 2);
+                grid.style.transform = `translateX(${exitX}px)`;
+            } else {
+                // Button click, slide out slightly then disappear
+                grid.style.transform = `translateX(${direction * 30}%)`;
+            }
+            grid.style.opacity = '0';
+
+            setTimeout(() => {
+                // 2. Data Update
+                currentMonth += delta;
+                if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+                else if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+                renderCalendar();
+                renderMemos();
+
+                // 3. Teleport grid to opposite side invisibly
+                grid.style.transition = 'none';
+                grid.style.transform = `translateX(${-direction * 30}%)`;
+
+                // 4. Slide In New Month
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        grid.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease-out';
+                        grid.style.transform = 'translateX(0)';
+                        grid.style.opacity = '1';
+
+                        // 5. Clean up
+                        setTimeout(() => {
+                            grid.style.transition = '';
+                            isMonthAnimating = false;
+                        }, 300);
+                    });
+                });
+            }, 200);
         }
 
         function goToToday() {
@@ -1584,41 +1593,50 @@
             renderMemos();
         }
 
-        // Touch Swipe Navigation for Calendar
+        // Touch Swipe Navigation for Calendar (Native Feel)
         let touchStartX = 0;
-        let touchEndX = 0;
-        const calendarEl = document.querySelector('.calendar-section');
+        let touchCurrentX = 0;
+        let isSwiping = false;
+        const calendarEl = document.getElementById('calendar');
 
         calendarEl.addEventListener('touchstart', e => {
+            if (isMonthAnimating) return;
             touchStartX = e.changedTouches[0].screenX;
+            touchCurrentX = touchStartX;
+            isSwiping = true;
+            calendarEl.style.transition = 'none'; // Disable transition for 1:1 finger tracking
+        }, { passive: true });
+
+        calendarEl.addEventListener('touchmove', e => {
+            if (!isSwiping || isMonthAnimating) return;
+            touchCurrentX = e.changedTouches[0].screenX;
+            const deltaX = touchCurrentX - touchStartX;
+
+            // Drag the calendar grid directly with the finger
+            calendarEl.style.transform = `translateX(${deltaX}px)`;
         }, { passive: true });
 
         calendarEl.addEventListener('touchend', e => {
-            touchEndX = e.changedTouches[0].screenX;
-            handleCalendarSwipe();
-        }, { passive: true });
-
-        function handleCalendarSwipe() {
-            const swipeThreshold = 50; // Minimum drag distance to register a swipe
-            const deltaX = touchEndX - touchStartX;
-            const grid = document.getElementById('calendar');
+            if (!isSwiping || isMonthAnimating) return;
+            isSwiping = false;
+            const deltaX = touchCurrentX - touchStartX;
+            const swipeThreshold = 50;
 
             if (deltaX < -swipeThreshold) {
                 // Swiped Left -> Next Month
-                grid.classList.add('slide-left');
-                setTimeout(() => {
-                    changeMonth(1);
-                    grid.classList.remove('slide-left');
-                }, 150);
+                changeMonth(1, true, deltaX);
             } else if (deltaX > swipeThreshold) {
                 // Swiped Right -> Prev Month
-                grid.classList.add('slide-right');
+                changeMonth(-1, true, deltaX);
+            } else {
+                // Drag not far enough, snap back to center
+                calendarEl.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)';
+                calendarEl.style.transform = 'translateX(0)';
                 setTimeout(() => {
-                    changeMonth(-1);
-                    grid.classList.remove('slide-right');
-                }, 150);
+                    calendarEl.style.transition = '';
+                }, 300);
             }
-        }
+        }, { passive: true });
         // Hide bottom menu when scrolling down
         window.addEventListener('scroll', () => {
             const bottomMenu = document.querySelector('.bottom-menu');
