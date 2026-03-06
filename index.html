@@ -222,6 +222,8 @@
             border-left: var(--glass-border);
             -ms-overflow-style: none;
             scrollbar-width: none;
+            touch-action: pan-y;
+            /* Prevent iOS horizontal swipe navigation */
         }
 
         .calendar-grid::-webkit-scrollbar {
@@ -391,6 +393,8 @@
             overflow: hidden;
             border-radius: 8px;
             background-color: transparent;
+            touch-action: pan-y;
+            /* Prevent native horizontal drag/navigation */
         }
 
         .todo-item {
