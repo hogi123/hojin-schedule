@@ -799,6 +799,39 @@
             display: block;
             opacity: 1;
         }
+
+        /* Swipe Animations */
+        @keyframes slideLeft {
+            from {
+                transform: translateX(50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideRight {
+            from {
+                transform: translateX(-50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .calendar-grid.slide-left {
+            animation: slideLeft 0.3s ease-out;
+        }
+
+        .calendar-grid.slide-right {
+            animation: slideRight 0.3s ease-out;
+        }
     </style>
 </head>
 
@@ -1551,6 +1584,41 @@
             renderMemos();
         }
 
+        // Touch Swipe Navigation for Calendar
+        let touchStartX = 0;
+        let touchEndX = 0;
+        const calendarEl = document.querySelector('.calendar-section');
+
+        calendarEl.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        calendarEl.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleCalendarSwipe();
+        }, { passive: true });
+
+        function handleCalendarSwipe() {
+            const swipeThreshold = 50; // Minimum drag distance to register a swipe
+            const deltaX = touchEndX - touchStartX;
+            const grid = document.getElementById('calendar');
+
+            if (deltaX < -swipeThreshold) {
+                // Swiped Left -> Next Month
+                grid.classList.add('slide-left');
+                setTimeout(() => {
+                    changeMonth(1);
+                    grid.classList.remove('slide-left');
+                }, 150);
+            } else if (deltaX > swipeThreshold) {
+                // Swiped Right -> Prev Month
+                grid.classList.add('slide-right');
+                setTimeout(() => {
+                    changeMonth(-1);
+                    grid.classList.remove('slide-right');
+                }, 150);
+            }
+        }
         // Hide bottom menu when scrolling down
         window.addEventListener('scroll', () => {
             const bottomMenu = document.querySelector('.bottom-menu');
