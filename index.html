@@ -953,6 +953,16 @@
                     <button onclick="clearCurrentHealthMonth()" class="btn btn-danger">초기화</button>
                 </div>
 
+                <div class="setting-item">
+                    <label>전체 스케줄 초기화</label>
+                    <button onclick="clearAllSchedule()" class="btn btn-danger">전체 초기화</button>
+                </div>
+
+                <div class="setting-item">
+                    <label>전체 운동 기록 초기화</label>
+                    <button onclick="clearAllHealth()" class="btn btn-danger">전체 초기화</button>
+                </div>
+
                 <div class="danger-zone" style="text-align: center; margin-top: 50px;">
                     <button onclick="handleLogout()" class="btn btn-secondary" style="width: 100%;">로그아웃 (계정
                         전환)</button>
@@ -1294,6 +1304,33 @@
                 renderWorkoutLogs();
             }
             alert(`${healthCurrentYear}년 ${healthCurrentMonth + 1}월 운동 기록 초기화 완료`);
+        }
+
+        function clearAllSchedule() {
+            if (!confirm('⚠️ 전체 스케줄 데이터를 초기화하시겠습니까?\n모든 월의 할 일, 메모, 마크가 삭제됩니다.')) return;
+            if (!confirm('정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+            scheduleData = {};
+            memoData = {};
+            dateMarks = {};
+            saveSchedule();
+            saveMemo();
+            saveMarks();
+            renderCalendar();
+            renderTodos();
+            renderMemos();
+            alert('전체 스케줄 데이터가 초기화되었습니다.');
+        }
+
+        function clearAllHealth() {
+            if (!confirm('⚠️ 전체 운동 기록을 초기화하시겠습니까?\n모든 월의 운동 기록과 마커가 삭제됩니다.')) return;
+            if (!confirm('정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+            healthData = {};
+            healthMarks = {};
+            saveHealth();
+            saveHealthMarks();
+            renderHealthCalendar();
+            renderWorkoutLogs();
+            alert('전체 운동 기록이 초기화되었습니다.');
         }
 
         function switchView(viewName) {
