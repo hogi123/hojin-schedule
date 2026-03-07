@@ -2051,9 +2051,17 @@
             listEl.innerHTML = '';
 
             if (!healthData[healthSelectedDate]) {
-                healthData[healthSelectedDate] = Array(5).fill(null).map(() => ({ name: '', weight: '', checked: false }));
+                // Default 5 exercises, each with 5 weight/reps slots
+                healthData[healthSelectedDate] = Array(5).fill(null).map(() => ({ name: '', weights: ['', '', '', '', ''] }));
             }
             const workouts = healthData[healthSelectedDate];
+            // Migrate old data format (single weight string -> array)
+            workouts.forEach(w => {
+                if (!Array.isArray(w.weights)) {
+                    w.weights = w.weight ? [w.weight, '', '', '', ''] : ['', '', '', '', ''];
+                    delete w.weight;
+                }
+            });
 
             workouts.forEach((workout, index) => {
                 const liContainer = document.createElement('div');
@@ -2072,12 +2080,14 @@
 
                 const li = document.createElement('li');
                 li.className = 'todo-item';
-                if (workout.checked) li.classList.add('completed');
+                li.style.flexDirection = 'column';
+                li.style.alignItems = 'stretch';
+                li.style.padding = '8px 10px';
 
                 // Swipe-to-delete logic
                 let startX = 0, currentX = 0, swiping = false;
                 li.addEventListener('touchstart', e => {
-                    if (e.target.tagName === 'INPUT' && e.target.type !== 'checkbox') return;
+                    if (e.target.tagName === 'INPUT') return;
                     startX = e.changedTouches[0].screenX;
                     currentX = startX;
                     swiping = true;
@@ -2114,33 +2124,20 @@
                     }
                 }, { passive: true });
 
-                // Checkbox
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.className = 'todo-checkbox';
-                checkbox.checked = workout.checked;
-                checkbox.onchange = () => {
-                    workout.checked = checkbox.checked;
-                    saveHealth();
-                    renderWorkoutLogs();
-                    renderHealthCalendar();
-                };
+                // Top row: set number + exercise name
+                const topRow = document.createElement('div');
+                topRow.style.cssText = 'display:flex;align-items:center;gap:5px;margin-bottom:5px;';
 
-                // Set number label
                 const setLabel = document.createElement('span');
-                setLabel.style.cssText = 'font-size:12px;color:#999;min-width:20px;font-weight:bold;';
+                setLabel.style.cssText = 'font-size:13px;color:#e74c3c;min-width:22px;font-weight:bold;';
                 setLabel.innerText = `${index + 1}.`;
 
-                const inputContainer = document.createElement('div');
-                inputContainer.style.cssText = 'display:flex;flex-grow:1;gap:5px;align-items:center;';
-
-                // Exercise Name Input
                 const nameInput = document.createElement('input');
                 nameInput.type = 'text';
-                nameInput.className = `todo-input ${workout.checked ? 'completed' : ''}`;
-                nameInput.style.flex = '2';
+                nameInput.className = 'todo-input';
+                nameInput.style.cssText = 'flex:1;font-weight:600;font-size:14px;';
                 nameInput.value = workout.name || '';
-                nameInput.placeholder = '종목 (예: 벤치프레스)';
+                nameInput.placeholder = '종목';
                 nameInput.onblur = (e) => {
                     workout.name = e.target.value;
                     saveHealth();
@@ -2148,38 +2145,54 @@
                 };
                 nameInput.onkeydown = (e) => { if (e.key === 'Enter') nameInput.blur(); };
 
-                // Weight/Reps Input
-                const weightInput = document.createElement('input');
-                weightInput.type = 'text';
-                weightInput.className = `todo-input ${workout.checked ? 'completed' : ''}`;
-                weightInput.style.cssText = 'flex:1;text-align:right;';
-                weightInput.value = workout.weight || '';
-                weightInput.placeholder = '무게(횟수)';
-                weightInput.onblur = (e) => {
-                    workout.weight = e.target.value;
+                topRow.appendChild(setLabel);
+                topRow.appendChild(nameInput);
+
+                // Bottom row: multiple weight/reps input boxes
+                const bottomRow = document.createElement('div');
+                bottomRow.style.cssText = 'display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding-left:22px;';
+
+                workout.weights.forEach((w, wIdx) => {
+                    const wInput = document.createElement('input');
+                    wInput.type = 'text';
+                    wInput.className = 'todo-input';
+                    wInput.style.cssText = 'width:60px;min-width:55px;text-align:center;font-size:12px;padding:4px 5px;border-radius:6px;background:rgba(255,255,255,0.7);border:1px solid #ddd;';
+                    wInput.value = w || '';
+                    wInput.placeholder = `${wIdx + 1}세트`;
+                    wInput.onblur = (e) => {
+                        workout.weights[wIdx] = e.target.value;
+                        saveHealth();
+                    };
+                    wInput.onkeydown = (e) => { if (e.key === 'Enter') wInput.blur(); };
+                    bottomRow.appendChild(wInput);
+                });
+
+                // Small + button to add more weight boxes
+                const addWeightBtn = document.createElement('button');
+                addWeightBtn.style.cssText = 'width:28px;height:28px;border-radius:50%;border:1px dashed #aaa;background:transparent;color:#999;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;';
+                addWeightBtn.innerText = '+';
+                addWeightBtn.onclick = () => {
+                    workout.weights.push('');
                     saveHealth();
+                    renderWorkoutLogs();
                 };
-                weightInput.onkeydown = (e) => { if (e.key === 'Enter') weightInput.blur(); };
+                bottomRow.appendChild(addWeightBtn);
 
-                inputContainer.appendChild(setLabel);
-                inputContainer.appendChild(nameInput);
-                inputContainer.appendChild(weightInput);
-
-                li.appendChild(checkbox);
-                li.appendChild(inputContainer);
+                li.appendChild(topRow);
+                li.appendChild(bottomRow);
 
                 liContainer.appendChild(deleteBtn);
                 liContainer.appendChild(li);
                 listEl.appendChild(liContainer);
             });
 
-            // Add set button
+            // Add exercise button
             const addBtn = document.createElement('button');
             addBtn.className = 'btn btn-primary';
             addBtn.style.cssText = 'width:100%;margin-top:10px;padding:10px;font-size:14px;border-radius:10px;';
-            addBtn.innerText = '+ 세트 추가';
+            addBtn.innerText = '+ 종목 추가';
             addBtn.onclick = () => {
-                workouts.push({ name: '', weight: '', checked: false });
+                workouts.push({ name: '', weights: ['', '', '', '', ''] });
                 saveHealth();
                 renderWorkoutLogs();
             };
