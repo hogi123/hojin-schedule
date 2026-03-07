@@ -1493,12 +1493,11 @@
             todoListEl.innerHTML = '';
 
             if (!scheduleData[selectedDate]) {
-                scheduleData[selectedDate] = Array(10).fill().map(() => ({ text: '', checked: false, color: null }));
+                scheduleData[selectedDate] = Array(3).fill().map(() => ({ text: '', checked: false, color: null }));
             }
             const tasks = scheduleData[selectedDate];
 
             tasks.forEach((task, index) => {
-                if (index >= 10) return;
 
                 // Wrapper for Swipe-to-Delete
                 const liContainer = document.createElement('div');
@@ -1516,8 +1515,6 @@
                         // Normal delete
                         if (confirm('이 할 일을 삭제하시겠습니까?')) {
                             scheduleData[selectedDate].splice(index, 1);
-                            // Add empty task at end to maintain 10 slots
-                            scheduleData[selectedDate].push({ text: '', checked: false, color: null });
                             saveSchedule();
                             renderTodos();
                             renderCalendar();
@@ -1630,11 +1627,7 @@
                     let targetList = scheduleData[selectedDate];
                     let draggedItem = targetList.splice(dragItemIndex, 1)[0];
                     targetList.splice(index, 0, draggedItem);
-
-                    while (targetList.length < 10) {
-                        targetList.push({ text: '', checked: false, color: null });
-                    }
-                    scheduleData[selectedDate] = targetList.slice(0, 10);
+                    scheduleData[selectedDate] = targetList;
 
                     saveSchedule();
                     renderTodos();
@@ -1736,6 +1729,18 @@
                 liContainer.appendChild(li);
                 todoListEl.appendChild(liContainer);
             });
+
+            // Add task button
+            const addBtn = document.createElement('button');
+            addBtn.className = 'btn btn-primary';
+            addBtn.style.cssText = 'width:100%;margin-top:10px;padding:10px;font-size:14px;border-radius:10px;';
+            addBtn.innerText = '+ 할 일 추가';
+            addBtn.onclick = () => {
+                tasks.push({ text: '', checked: false, color: null });
+                saveSchedule();
+                renderTodos();
+            };
+            todoListEl.appendChild(addBtn);
         }
 
         // Routine Deletion Logic
@@ -1757,9 +1762,8 @@
         document.getElementById('btn-delete-single').addEventListener('click', () => {
             if (currentDeleteRoutineDate && currentDeleteRoutineIndex !== null) {
                 // Remove routine tracking just for this instance, or delete it completely
-                // Easiest is to just remove it and add empty slot
+                // Remove the task
                 scheduleData[currentDeleteRoutineDate].splice(currentDeleteRoutineIndex, 1);
-                scheduleData[currentDeleteRoutineDate].push({ text: '', checked: false, color: null });
                 saveSchedule();
                 renderTodos();
                 renderCalendar();
@@ -1776,10 +1780,6 @@
                     // Iterate through all dates and remove the task with this routineId
                     for (const date in scheduleData) {
                         scheduleData[date] = scheduleData[date].filter(t => t.routineId !== routineId);
-                        // Ensure we still have 10 slots per day
-                        while (scheduleData[date].length < 10) {
-                            scheduleData[date].push({ text: '', checked: false, color: null });
-                        }
                     }
                     saveSchedule();
                     renderTodos();
