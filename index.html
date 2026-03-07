@@ -1900,14 +1900,19 @@
                 }, 300);
             }
         }, { passive: true });
-        // Hide bottom menu when scrolling down
+        // Hide bottom menu when scrolling down, show when scrolling up
+        let lastScrollY = 0;
         window.addEventListener('scroll', () => {
             const bottomMenu = document.querySelector('.bottom-menu');
-            if (window.scrollY > 10) {
+            const currentScrollY = window.scrollY;
+            if (currentScrollY > lastScrollY && currentScrollY > 10) {
+                // Scrolling down
                 bottomMenu.classList.add('hidden');
             } else {
+                // Scrolling up or at top
                 bottomMenu.classList.remove('hidden');
             }
+            lastScrollY = currentScrollY;
         });
 
         // Init
