@@ -607,6 +607,16 @@
             background-color: transparent;
         }
 
+        .menu-item.active::after {
+            content: '';
+            display: block;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            margin-top: 3px;
+        }
+
         /* Settings CSS */
         .settings-container {
             max-width: 500px;
@@ -938,6 +948,11 @@
                     <button onclick="clearCurrentMonth()" class="btn btn-danger">초기화</button>
                 </div>
 
+                <div class="setting-item">
+                    <label>현재 달(月) 운동 기록 초기화</label>
+                    <button onclick="clearCurrentHealthMonth()" class="btn btn-danger">초기화</button>
+                </div>
+
                 <div class="danger-zone" style="text-align: center; margin-top: 50px;">
                     <button onclick="handleLogout()" class="btn btn-secondary" style="width: 100%;">로그아웃 (계정
                         전환)</button>
@@ -1089,6 +1104,7 @@
             memoData = {};
             dateMarks = {};
             healthData = {};
+            healthMarks = {};
             localStorage.clear();
             renderCalendar();
             renderTodos();
@@ -1108,6 +1124,7 @@
                     memoData = data.memoData || {};
                     dateMarks = data.dateMarks || {};
                     healthData = data.healthData || {};
+                    healthMarks = data.healthMarks || {};
                     if (data.defaultColor) defaultColor = data.defaultColor;
 
                     // Sync to local
@@ -1115,6 +1132,7 @@
                     localStorage.setItem('memoData', JSON.stringify(memoData));
                     localStorage.setItem('dateMarks', JSON.stringify(dateMarks));
                     localStorage.setItem('healthData', JSON.stringify(healthData));
+                    localStorage.setItem('healthMarks', JSON.stringify(healthMarks));
                     localStorage.setItem('defaultColor', defaultColor);
                 }
                 renderCalendar();
@@ -1158,9 +1176,17 @@
         let memoData = JSON.parse(localStorage.getItem('memoData')) || {};
         let dateMarks = JSON.parse(localStorage.getItem('dateMarks')) || {};
         let healthData = JSON.parse(localStorage.getItem('healthData')) || {};
+        let healthMarks = JSON.parse(localStorage.getItem('healthMarks')) || {};
         let healthCurrentYear = new Date().getFullYear();
         let healthCurrentMonth = new Date().getMonth();
         let healthSelectedDate = null;
+        let healthClickCounts = {};
+        let healthClickTimers = {};
+
+        function saveHealthMarks() {
+            localStorage.setItem('healthMarks', JSON.stringify(healthMarks));
+            syncToCloud();
+        }
 
         // Initialize Settings Palette
         document.addEventListener('DOMContentLoaded', () => {
@@ -1192,10 +1218,23 @@
                 memoData: memoData,
                 dateMarks: dateMarks,
                 defaultColor: defaultColor,
-                healthData: healthData
+                healthData: healthData,
+                healthMarks: healthMarks
             }, { merge: true }).catch(e => console.error("Sync error:", e));
         }
         function saveHealth() {
+            // Auto-trim trailing empty weight boxes
+            Object.keys(healthData).forEach(dateKey => {
+                healthData[dateKey].forEach(w => {
+                    if (Array.isArray(w.weights)) {
+                        while (w.weights.length > 1 && w.weights[w.weights.length - 1] === '') {
+                            w.weights.pop();
+                        }
+                        // Ensure at least 1 slot
+                        if (w.weights.length === 0) w.weights.push('');
+                    }
+                });
+            });
             localStorage.setItem('healthData', JSON.stringify(healthData));
             syncToCloud();
         }
@@ -1223,16 +1262,11 @@
 
         function clearCurrentMonth() {
             if (!confirm(`${currentYear}년 ${currentMonth + 1}월의 모든 할 일 데이터를 초기화하시겠습니까?`)) return;
-
-            // Clear days belonging to current month
             const yearMonthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
             Object.keys(scheduleData).forEach(key => {
                 if (key.startsWith(yearMonthStr)) delete scheduleData[key];
             });
-
-            // Clear memo for current month
             delete memoData[yearMonthStr];
-
             saveSchedule();
             saveMemo();
             renderCalendar();
@@ -1241,6 +1275,25 @@
             }
             renderMemos();
             alert(`${currentYear}년 ${currentMonth + 1}월 초기화 완료`);
+        }
+
+        function clearCurrentHealthMonth() {
+            const ym = `${healthCurrentYear}-${String(healthCurrentMonth + 1).padStart(2, '0')}`;
+            if (!confirm(`${healthCurrentYear}년 ${healthCurrentMonth + 1}월의 모든 운동 기록을 초기화하시겠습니까?`)) return;
+            Object.keys(healthData).forEach(key => {
+                if (key.startsWith(ym)) delete healthData[key];
+            });
+            // Also clear health marks for that month
+            Object.keys(healthMarks).forEach(key => {
+                if (key.startsWith(ym)) delete healthMarks[key];
+            });
+            saveHealth();
+            saveHealthMarks();
+            renderHealthCalendar();
+            if (healthSelectedDate && healthSelectedDate.startsWith(ym)) {
+                renderWorkoutLogs();
+            }
+            alert(`${healthCurrentYear}년 ${healthCurrentMonth + 1}월 운동 기록 초기화 완료`);
         }
 
         function switchView(viewName) {
@@ -2027,10 +2080,39 @@
                         cel.classList.add('selected');
                     }
 
+                    // Show health marks (circle / x)
+                    if (healthMarks[dateStr] === 'circle') {
+                        const mark = document.createElement('div');
+                        mark.style.cssText = 'font-size:10px;color:#27ae60;font-weight:bold;';
+                        mark.innerText = '⭕';
+                        cel.appendChild(mark);
+                    } else if (healthMarks[dateStr] === 'x') {
+                        const mark = document.createElement('div');
+                        mark.style.cssText = 'font-size:10px;color:#e74c3c;font-weight:bold;';
+                        mark.innerText = '❌';
+                        cel.appendChild(mark);
+                    }
+
+                    // Multi-click: single=select, double=circle, triple=x
                     cel.onclick = () => {
                         healthSelectedDate = dateStr;
-                        renderHealthCalendar();
-                        renderWorkoutLogs();
+                        healthClickCounts[dateStr] = (healthClickCounts[dateStr] || 0) + 1;
+                        if (healthClickTimers[dateStr]) clearTimeout(healthClickTimers[dateStr]);
+                        healthClickTimers[dateStr] = setTimeout(() => {
+                            let count = healthClickCounts[dateStr];
+                            healthClickCounts[dateStr] = 0;
+                            if (count === 2) {
+                                if (healthMarks[dateStr] === 'circle') delete healthMarks[dateStr];
+                                else healthMarks[dateStr] = 'circle';
+                                saveHealthMarks();
+                            } else if (count >= 3) {
+                                if (healthMarks[dateStr] === 'x') delete healthMarks[dateStr];
+                                else healthMarks[dateStr] = 'x';
+                                saveHealthMarks();
+                            }
+                            renderHealthCalendar();
+                            renderWorkoutLogs();
+                        }, 300);
                     };
                 } else {
                     cel.classList.add('empty');
@@ -2050,8 +2132,34 @@
             titleEl.innerText = healthSelectedDate + ' 운동 기록';
             listEl.innerHTML = '';
 
+            // Copy previous day button (show only if current date has no data)
+            if (!healthData[healthSelectedDate] || healthData[healthSelectedDate].every(w => !w.name || w.name.trim() === '')) {
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'btn';
+                copyBtn.style.cssText = 'width:100%;margin-bottom:10px;padding:8px;font-size:13px;border-radius:8px;background:#f0f0f0;color:#555;border:1px dashed #ccc;cursor:pointer;';
+                copyBtn.innerText = '📋 이전 날짜 운동 기록 불러오기';
+                copyBtn.onclick = () => {
+                    // Find the most recent previous date with workout data
+                    const sortedDates = Object.keys(healthData).filter(d => d < healthSelectedDate && healthData[d].some(w => w.name && w.name.trim() !== '')).sort().reverse();
+                    if (sortedDates.length === 0) {
+                        alert('이전 운동 기록이 없습니다.');
+                        return;
+                    }
+                    const prevDate = sortedDates[0];
+                    if (!confirm(`${prevDate}의 운동 기록을 불러올까요?`)) return;
+                    healthData[healthSelectedDate] = JSON.parse(JSON.stringify(healthData[prevDate]));
+                    // Clear weight values but keep exercise names
+                    healthData[healthSelectedDate].forEach(w => {
+                        w.weights = w.weights.map(() => '');
+                    });
+                    saveHealth();
+                    renderWorkoutLogs();
+                    renderHealthCalendar();
+                };
+                listEl.appendChild(copyBtn);
+            }
+
             if (!healthData[healthSelectedDate]) {
-                // Default 5 exercises, each with 5 weight/reps slots
                 healthData[healthSelectedDate] = Array(5).fill(null).map(() => ({ name: '', weights: ['', '', '', '', ''] }));
             }
             const workouts = healthData[healthSelectedDate];
@@ -2156,7 +2264,7 @@
                     const wInput = document.createElement('input');
                     wInput.type = 'text';
                     wInput.className = 'todo-input';
-                    wInput.style.cssText = 'width:60px;min-width:55px;text-align:center;font-size:12px;padding:4px 5px;border-radius:6px;background:rgba(255,255,255,0.7);border:1px solid #ddd;';
+                    wInput.style.cssText = 'width:75px;min-width:65px;text-align:center;font-size:12px;padding:5px 6px;border-radius:6px;background:rgba(255,255,255,0.7);border:1px solid #ddd;';
                     wInput.value = w || '';
                     wInput.placeholder = `${wIdx + 1}세트`;
                     wInput.onblur = (e) => {
