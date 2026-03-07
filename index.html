@@ -2089,10 +2089,13 @@
 
                 if (dayNum >= 1 && dayNum <= daysInMonth) {
                     const dateStr = `${healthCurrentYear}-${String(healthCurrentMonth + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+                    const numContainer = document.createElement('div');
+                    numContainer.className = 'day-number-container';
                     const numEl = document.createElement('div');
                     numEl.className = 'day-number';
                     numEl.innerText = dayNum;
-                    cel.appendChild(numEl);
+                    numContainer.appendChild(numEl);
+                    cel.appendChild(numContainer);
 
                     // Show workout count indicator
                     if (healthData[dateStr]) {
