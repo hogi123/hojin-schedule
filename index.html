@@ -1695,6 +1695,12 @@
                 return;
             }
 
+            // Generate a unique ID for this routine
+            const routineId = 'routine_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+            // Assign routineId to the original task
+            taskToRepeat.routineId = routineId;
+
             let currentStr = startDateStr;
             let addedCount = 0;
 
@@ -1717,7 +1723,8 @@
                     scheduleData[currentStr][slotIndex] = {
                         text: taskToRepeat.text,
                         checked: false,
-                        color: taskToRepeat.color || defaultColor
+                        color: taskToRepeat.color || defaultColor,
+                        routineId: routineId
                     };
                     addedCount++;
                 }
