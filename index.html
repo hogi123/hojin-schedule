@@ -344,6 +344,41 @@
             padding-top: 2px;
         }
 
+        .range-pill {
+            font-size: 9px;
+            padding: 1px 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.1;
+            min-width: 0;
+            color: #333;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .range-pill.range-start {
+            border-radius: 3px 0 0 3px;
+            margin-left: 2px;
+            margin-right: 0;
+        }
+
+        .range-pill.range-middle {
+            border-radius: 0;
+            margin: 0;
+        }
+
+        .range-pill.range-end {
+            border-radius: 0 3px 3px 0;
+            margin-left: 0;
+            margin-right: 2px;
+        }
+
+        .range-pill.range-single {
+            border-radius: 3px;
+            margin: 0 2px;
+        }
+
         .event-pill {
             font-size: 9px;
             padding: 1px 3px;
@@ -887,8 +922,11 @@
 
             <div class="right-panel">
                 <div class="todo-wrapper">
-                    <div class="todo-header">
+                    <div class="todo-header" style="display:flex;align-items:center;justify-content:space-between;">
                         <div class="selected-date-display" id="selected-date-title">날짜를 선택하세요</div>
+                        <button onclick="openRangeModal()" class="btn"
+                            style="font-size:12px;padding:5px 10px;border-radius:8px;background:#e3f2fd;color:#1976d2;border:1px solid #bbdefb;white-space:nowrap;">📅
+                            기간 블록</button>
                     </div>
                     <ul class="todo-list" id="todo-list"></ul>
                 </div>
@@ -1035,6 +1073,40 @@
         </div>
     </div>
 
+    <!-- Range Block Modal -->
+    <div id="range-modal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; align-items: center; justify-content: center;">
+        <div
+            style="background: white; padding: 25px 20px; border-radius: 16px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+            <h3 style="margin-top: 0; color: #333; margin-bottom: 15px; font-size: 18px;">📅 기간 블록 추가</h3>
+            <div style="text-align:left;margin-bottom:10px;">
+                <label style="font-size:13px;color:#555;display:block;margin-bottom:4px;">일정명</label>
+                <input type="text" id="range-modal-text" placeholder="예: 수강변경 기간"
+                    style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;">
+            </div>
+            <div style="text-align:left;margin-bottom:10px;">
+                <label style="font-size:13px;color:#555;display:block;margin-bottom:4px;">시작일</label>
+                <input type="date" id="range-start-date"
+                    style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;">
+            </div>
+            <div style="text-align:left;margin-bottom:10px;">
+                <label style="font-size:13px;color:#555;display:block;margin-bottom:4px;">종료일</label>
+                <input type="date" id="range-end-date"
+                    style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;">
+            </div>
+            <div style="text-align:left;margin-bottom:12px;">
+                <label style="font-size:13px;color:#555;display:block;margin-bottom:6px;">색상</label>
+                <div id="range-modal-colors" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" onclick="cancelRangeBlock()"
+                    style="flex:1; background-color: #f1f2f6; color: #555; padding: 12px; font-size: 15px; border-radius:10px;">취소</button>
+                <button class="btn btn-primary" onclick="confirmRangeBlock()"
+                    style="flex:1; padding: 12px; font-size: 15px; border-radius:10px;">추가</button>
+            </div>
+        </div>
+    </div>
+
 
     <nav class="bottom-menu">
         <a class="menu-item active" id="nav-schedule" onclick="switchView('schedule')">
@@ -1112,6 +1184,7 @@
             scheduleData = {};
             memoData = {};
             dateMarks = {};
+            rangeBlocks = [];
 
             healthData = {};
             healthMarks = {};
@@ -1133,6 +1206,7 @@
                     scheduleData = data.scheduleData || {};
                     memoData = data.memoData || {};
                     dateMarks = data.dateMarks || {};
+                    rangeBlocks = data.rangeBlocks || [];
 
                     healthData = data.healthData || {};
                     healthMarks = data.healthMarks || {};
@@ -1142,6 +1216,7 @@
                     localStorage.setItem('scheduleData', JSON.stringify(scheduleData));
                     localStorage.setItem('memoData', JSON.stringify(memoData));
                     localStorage.setItem('dateMarks', JSON.stringify(dateMarks));
+                    localStorage.setItem('rangeBlocks', JSON.stringify(rangeBlocks));
 
                     localStorage.setItem('healthData', JSON.stringify(healthData));
                     localStorage.setItem('healthMarks', JSON.stringify(healthMarks));
@@ -1187,6 +1262,7 @@
         let scheduleData = JSON.parse(localStorage.getItem('scheduleData')) || {};
         let memoData = JSON.parse(localStorage.getItem('memoData')) || {};
         let dateMarks = JSON.parse(localStorage.getItem('dateMarks')) || {};
+        let rangeBlocks = JSON.parse(localStorage.getItem('rangeBlocks')) || [];
 
         let healthData = JSON.parse(localStorage.getItem('healthData')) || {};
         let healthMarks = JSON.parse(localStorage.getItem('healthMarks')) || {};
@@ -1231,10 +1307,15 @@
                 memoData: memoData,
                 dateMarks: dateMarks,
                 defaultColor: defaultColor,
+                rangeBlocks: rangeBlocks,
 
                 healthData: healthData,
                 healthMarks: healthMarks
             }, { merge: true }).catch(e => console.error("Sync error:", e));
+        }
+        function saveRangeBlocks() {
+            localStorage.setItem('rangeBlocks', JSON.stringify(rangeBlocks));
+            syncToCloud();
         }
 
         function saveHealth() {
@@ -1418,6 +1499,21 @@
 
                 let html = `<div class="day-number-container"><div class="day-number ${markClass}">${d}</div></div><div class="events-container">`;
 
+                // Render range blocks (with placeholders for alignment)
+                rangeBlocks.forEach((rb, rbIdx) => {
+                    if (dateKey >= rb.startDate && dateKey <= rb.endDate) {
+                        let posClass = 'range-single';
+                        if (rb.startDate !== rb.endDate) {
+                            if (dateKey === rb.startDate) posClass = 'range-start';
+                            else if (dateKey === rb.endDate) posClass = 'range-end';
+                            else posClass = 'range-middle';
+                        }
+                        const label = (dateKey === rb.startDate) ? rb.text : '';
+                        html += `<div class="range-pill ${posClass}" style="background:${rb.color};" onclick="event.stopPropagation();deleteRangeBlock(${rbIdx})">${label}</div>`;
+                    } else {
+                        html += `<div class="range-pill" style="visibility:hidden;">&nbsp;</div>`;
+                    }
+                });
 
                 const tasks = scheduleData[dateKey] || [];
                 tasks.forEach(t => {
@@ -1967,6 +2063,57 @@
                 selectDate('2026-01-01');
             }
             renderMemos();
+        }
+        // ====== Range Block Modal Functions ======
+        const RANGE_COLORS = ['#bbdefb', '#c8e6c9', '#fff9c4', '#f8bbd0', '#e1bee7', '#ffccbc', '#b2dfdb', '#d1c4e9'];
+        let pendingRangeColor = RANGE_COLORS[0];
+
+        function openRangeModal() {
+            document.getElementById('range-modal-text').value = '';
+            // Pre-fill dates with selected date if available
+            const today = selectedDate || `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01`;
+            document.getElementById('range-start-date').value = today;
+            document.getElementById('range-end-date').value = today;
+            // Build color swatches
+            const colorsDiv = document.getElementById('range-modal-colors');
+            colorsDiv.innerHTML = '';
+            pendingRangeColor = RANGE_COLORS[0];
+            RANGE_COLORS.forEach(c => {
+                const sw = document.createElement('div');
+                sw.style.cssText = `width:28px;height:28px;border-radius:50%;background:${c};cursor:pointer;border:3px solid ${c === pendingRangeColor ? '#333' : 'transparent'};`;
+                sw.onclick = () => {
+                    pendingRangeColor = c;
+                    colorsDiv.querySelectorAll('div').forEach(d => d.style.borderColor = 'transparent');
+                    sw.style.borderColor = '#333';
+                };
+                colorsDiv.appendChild(sw);
+            });
+            document.getElementById('range-modal').style.display = 'flex';
+        }
+
+        function confirmRangeBlock() {
+            const text = document.getElementById('range-modal-text').value.trim();
+            const startDate = document.getElementById('range-start-date').value;
+            const endDate = document.getElementById('range-end-date').value;
+            if (!text) { alert('일정명을 입력하세요.'); return; }
+            if (!startDate || !endDate) { alert('시작일과 종료일을 입력하세요.'); return; }
+            if (startDate > endDate) { alert('종료일이 시작일보다 빠릅니다.'); return; }
+            rangeBlocks.push({ startDate, endDate, text, color: pendingRangeColor });
+            saveRangeBlocks();
+            document.getElementById('range-modal').style.display = 'none';
+            renderCalendar();
+        }
+
+        function cancelRangeBlock() {
+            document.getElementById('range-modal').style.display = 'none';
+        }
+
+        function deleteRangeBlock(idx) {
+            if (confirm(`"${rangeBlocks[idx].text}" 기간 블록을 삭제하시겠습니까?`)) {
+                rangeBlocks.splice(idx, 1);
+                saveRangeBlocks();
+                renderCalendar();
+            }
         }
 
         // Touch Swipe Navigation for Calendar (Native Feel)
