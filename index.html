@@ -2119,17 +2119,11 @@
                         cel.classList.add('selected');
                     }
 
-                    // Show health marks (circle / x)
+                    // Apply health marks (circle / x) to day number
                     if (healthMarks[dateStr] === 'circle') {
-                        const mark = document.createElement('div');
-                        mark.style.cssText = 'font-size:10px;color:#27ae60;font-weight:bold;';
-                        mark.innerText = '⭕';
-                        cel.appendChild(mark);
+                        numEl.classList.add('mark-circle');
                     } else if (healthMarks[dateStr] === 'x') {
-                        const mark = document.createElement('div');
-                        mark.style.cssText = 'font-size:10px;color:#e74c3c;font-weight:bold;';
-                        mark.innerText = '❌';
-                        cel.appendChild(mark);
+                        numEl.classList.add('mark-x');
                     }
 
                     // Multi-click: single=select, double=circle, triple=x
