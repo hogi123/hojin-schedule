@@ -1504,20 +1504,23 @@
                 const monthStart = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01`;
                 const monthEnd = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`;
                 const monthRanges = rangeBlocks.map((rb, idx) => ({ ...rb, idx })).filter(rb => rb.endDate >= monthStart && rb.startDate <= monthEnd);
-                monthRanges.forEach(rb => {
-                    if (dateKey >= rb.startDate && dateKey <= rb.endDate) {
-                        let posClass = 'range-single';
-                        if (rb.startDate !== rb.endDate) {
-                            if (dateKey === rb.startDate) posClass = 'range-start';
-                            else if (dateKey === rb.endDate) posClass = 'range-end';
-                            else posClass = 'range-middle';
+                const dateInAnyRange = monthRanges.some(rb => dateKey >= rb.startDate && dateKey <= rb.endDate);
+                if (dateInAnyRange) {
+                    monthRanges.forEach(rb => {
+                        if (dateKey >= rb.startDate && dateKey <= rb.endDate) {
+                            let posClass = 'range-single';
+                            if (rb.startDate !== rb.endDate) {
+                                if (dateKey === rb.startDate) posClass = 'range-start';
+                                else if (dateKey === rb.endDate) posClass = 'range-end';
+                                else posClass = 'range-middle';
+                            }
+                            const label = (dateKey === rb.startDate) ? rb.text : '';
+                            html += `<div class="range-pill ${posClass}" style="background:${rb.color};" onclick="event.stopPropagation();deleteRangeBlock(${rb.idx})">${label}</div>`;
+                        } else {
+                            html += `<div class="range-pill" style="visibility:hidden;">&nbsp;</div>`;
                         }
-                        const label = (dateKey === rb.startDate) ? rb.text : '';
-                        html += `<div class="range-pill ${posClass}" style="background:${rb.color};" onclick="event.stopPropagation();deleteRangeBlock(${rb.idx})">${label}</div>`;
-                    } else {
-                        html += `<div class="range-pill" style="visibility:hidden;">&nbsp;</div>`;
-                    }
-                });
+                    });
+                }
 
                 const tasks = scheduleData[dateKey] || [];
                 tasks.forEach(t => {
