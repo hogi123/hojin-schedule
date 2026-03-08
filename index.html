@@ -1508,7 +1508,7 @@
 
                 let html = `<div class="day-number-container"><div class="day-number ${markClass}">${d}</div></div><div class="events-container">`;
 
-                // Render range blocks for this date
+                // Render range blocks for this date (with placeholders for alignment)
                 rangeBlocks.forEach((rb, rbIdx) => {
                     if (dateKey >= rb.startDate && dateKey <= rb.endDate) {
                         let posClass = 'range-single';
@@ -1519,6 +1519,9 @@
                         }
                         const label = (dateKey === rb.startDate) ? rb.text : '';
                         html += `<div class="range-pill ${posClass}" style="background:${rb.color};" data-range-idx="${rbIdx}">${label}</div>`;
+                    } else {
+                        // Invisible placeholder to keep rows aligned
+                        html += `<div class="range-pill" style="visibility:hidden;">&nbsp;</div>`;
                     }
                 });
 
