@@ -1501,7 +1501,10 @@
                 let html = `<div class="day-number-container"><div class="day-number ${markClass}">${d}</div></div><div class="events-container">`;
 
                 // Render range blocks (with placeholders for alignment)
-                rangeBlocks.forEach((rb, rbIdx) => {
+                const monthStart = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01`;
+                const monthEnd = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`;
+                const monthRanges = rangeBlocks.map((rb, idx) => ({ ...rb, idx })).filter(rb => rb.endDate >= monthStart && rb.startDate <= monthEnd);
+                monthRanges.forEach(rb => {
                     if (dateKey >= rb.startDate && dateKey <= rb.endDate) {
                         let posClass = 'range-single';
                         if (rb.startDate !== rb.endDate) {
@@ -1510,7 +1513,7 @@
                             else posClass = 'range-middle';
                         }
                         const label = (dateKey === rb.startDate) ? rb.text : '';
-                        html += `<div class="range-pill ${posClass}" style="background:${rb.color};" onclick="event.stopPropagation();deleteRangeBlock(${rbIdx})">${label}</div>`;
+                        html += `<div class="range-pill ${posClass}" style="background:${rb.color};" onclick="event.stopPropagation();deleteRangeBlock(${rb.idx})">${label}</div>`;
                     } else {
                         html += `<div class="range-pill" style="visibility:hidden;">&nbsp;</div>`;
                     }
