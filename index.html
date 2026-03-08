@@ -1515,7 +1515,7 @@
                                 else posClass = 'range-middle';
                             }
                             const label = (dateKey === rb.startDate) ? rb.text : '';
-                            html += `<div class="range-pill ${posClass}" style="background:${rb.color};" onclick="event.stopPropagation();deleteRangeBlock(${rb.idx})">${label}</div>`;
+                            html += `<div class="range-pill ${posClass}" style="background:${rb.color};" onclick="event.stopPropagation();handleRangeBlockTap(${rb.idx})">${label}</div>`;
                         } else {
                             html += `<div class="range-pill" style="visibility:hidden;">&nbsp;</div>`;
                         }
@@ -2073,17 +2073,23 @@
         // ====== Range Block Modal Functions ======
         const RANGE_COLORS = ['#bbdefb', '#c8e6c9', '#fff9c4', '#f8bbd0', '#e1bee7', '#ffccbc', '#b2dfdb', '#d1c4e9'];
         let pendingRangeColor = RANGE_COLORS[0];
+        let editingRangeIdx = -1;
 
-        function openRangeModal() {
-            document.getElementById('range-modal-text').value = '';
-            // Pre-fill dates with selected date if available
+        function openRangeModal(editIdx) {
+            editingRangeIdx = (editIdx !== undefined) ? editIdx : -1;
+            const isEdit = editingRangeIdx >= 0;
+            const rb = isEdit ? rangeBlocks[editingRangeIdx] : null;
+
+            document.querySelector('#range-modal h3').innerText = isEdit ? '📅 기간 블록 수정' : '📅 기간 블록 추가';
+            document.getElementById('range-modal-text').value = isEdit ? rb.text : '';
             const today = selectedDate || `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01`;
-            document.getElementById('range-start-date').value = today;
-            document.getElementById('range-end-date').value = today;
+            document.getElementById('range-start-date').value = isEdit ? rb.startDate : today;
+            document.getElementById('range-end-date').value = isEdit ? rb.endDate : today;
+
             // Build color swatches
             const colorsDiv = document.getElementById('range-modal-colors');
             colorsDiv.innerHTML = '';
-            pendingRangeColor = RANGE_COLORS[0];
+            pendingRangeColor = isEdit ? rb.color : RANGE_COLORS[0];
             RANGE_COLORS.forEach(c => {
                 const sw = document.createElement('div');
                 sw.style.cssText = `width:28px;height:28px;border-radius:50%;background:${c};cursor:pointer;border:3px solid ${c === pendingRangeColor ? '#333' : 'transparent'};`;
@@ -2104,21 +2110,36 @@
             if (!text) { alert('일정명을 입력하세요.'); return; }
             if (!startDate || !endDate) { alert('시작일과 종료일을 입력하세요.'); return; }
             if (startDate > endDate) { alert('종료일이 시작일보다 빠릅니다.'); return; }
-            rangeBlocks.push({ startDate, endDate, text, color: pendingRangeColor });
+
+            if (editingRangeIdx >= 0) {
+                // Edit mode
+                rangeBlocks[editingRangeIdx] = { startDate, endDate, text, color: pendingRangeColor };
+            } else {
+                // Add mode
+                rangeBlocks.push({ startDate, endDate, text, color: pendingRangeColor });
+            }
+            editingRangeIdx = -1;
             saveRangeBlocks();
             document.getElementById('range-modal').style.display = 'none';
             renderCalendar();
         }
 
         function cancelRangeBlock() {
+            editingRangeIdx = -1;
             document.getElementById('range-modal').style.display = 'none';
         }
 
-        function deleteRangeBlock(idx) {
-            if (confirm(`"${rangeBlocks[idx].text}" 기간 블록을 삭제하시겠습니까?`)) {
-                rangeBlocks.splice(idx, 1);
-                saveRangeBlocks();
-                renderCalendar();
+        function handleRangeBlockTap(idx) {
+            const rb = rangeBlocks[idx];
+            const choice = prompt(`"${rb.text}" (${rb.startDate} ~ ${rb.endDate})\n\n1: 수정\n2: 삭제\n\n번호를 입력하세요:`, '1');
+            if (choice === '1') {
+                openRangeModal(idx);
+            } else if (choice === '2') {
+                if (confirm(`"${rb.text}" 기간 블록을 삭제하시겠습니까?`)) {
+                    rangeBlocks.splice(idx, 1);
+                    saveRangeBlocks();
+                    renderCalendar();
+                }
             }
         }
 
