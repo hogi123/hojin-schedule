@@ -339,9 +339,48 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 1px;
             overflow-y: hidden;
             padding-top: 2px;
+        }
+
+        .range-pill {
+            font-size: 9px;
+            padding: 1px 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.1;
+            min-width: 0;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .range-pill.range-start {
+            border-radius: 3px 0 0 3px;
+            margin-left: 2px;
+            margin-right: 0;
+        }
+
+        .range-pill.range-middle {
+            border-radius: 0;
+            margin-left: 0;
+            margin-right: 0;
+        }
+
+        .range-pill.range-end {
+            border-radius: 0 3px 3px 0;
+            margin-left: 0;
+            margin-right: 2px;
+        }
+
+        .range-pill.range-single {
+            border-radius: 3px;
+            margin: 0 2px;
+        }
+
+        .calendar-cell.range-drag-highlight {
+            background-color: rgba(74, 144, 226, 0.15) !important;
         }
 
         .event-pill {
@@ -1035,6 +1074,26 @@
         </div>
     </div>
 
+    <!-- Range Block Modal -->
+    <div id="range-modal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; align-items: center; justify-content: center;">
+        <div
+            style="background: white; padding: 25px 20px; border-radius: 16px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+            <h3 style="margin-top: 0; color: #333; margin-bottom: 10px; font-size: 18px;">기간 블록 추가</h3>
+            <p id="range-modal-dates" style="color: #666; font-size: 13px; margin-bottom: 15px;"></p>
+            <input type="text" id="range-modal-text" placeholder="일정명 (예: 수강신청)"
+                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; box-sizing: border-box; margin-bottom: 10px;">
+            <div id="range-modal-colors"
+                style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:15px;"></div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" onclick="cancelRangeBlock()"
+                    style="flex:1; background-color: #f1f2f6; color: #555; padding: 12px; font-size: 15px;">취소</button>
+                <button class="btn btn-primary" onclick="confirmRangeBlock()"
+                    style="flex:1; padding: 12px; font-size: 15px;">추가</button>
+            </div>
+        </div>
+    </div>
+
     <nav class="bottom-menu">
         <a class="menu-item active" id="nav-schedule" onclick="switchView('schedule')">
             <span style="font-size: 24px; margin-bottom: 5px;">📅</span>
@@ -1111,6 +1170,7 @@
             scheduleData = {};
             memoData = {};
             dateMarks = {};
+            rangeBlocks = [];
             healthData = {};
             healthMarks = {};
             localStorage.clear();
@@ -1131,6 +1191,7 @@
                     scheduleData = data.scheduleData || {};
                     memoData = data.memoData || {};
                     dateMarks = data.dateMarks || {};
+                    rangeBlocks = data.rangeBlocks || [];
                     healthData = data.healthData || {};
                     healthMarks = data.healthMarks || {};
                     if (data.defaultColor) defaultColor = data.defaultColor;
@@ -1139,6 +1200,7 @@
                     localStorage.setItem('scheduleData', JSON.stringify(scheduleData));
                     localStorage.setItem('memoData', JSON.stringify(memoData));
                     localStorage.setItem('dateMarks', JSON.stringify(dateMarks));
+                    localStorage.setItem('rangeBlocks', JSON.stringify(rangeBlocks));
                     localStorage.setItem('healthData', JSON.stringify(healthData));
                     localStorage.setItem('healthMarks', JSON.stringify(healthMarks));
                     localStorage.setItem('defaultColor', defaultColor);
@@ -1183,6 +1245,7 @@
         let scheduleData = JSON.parse(localStorage.getItem('scheduleData')) || {};
         let memoData = JSON.parse(localStorage.getItem('memoData')) || {};
         let dateMarks = JSON.parse(localStorage.getItem('dateMarks')) || {};
+        let rangeBlocks = JSON.parse(localStorage.getItem('rangeBlocks')) || [];
         let healthData = JSON.parse(localStorage.getItem('healthData')) || {};
         let healthMarks = JSON.parse(localStorage.getItem('healthMarks')) || {};
         let healthCurrentYear = new Date().getFullYear();
@@ -1226,9 +1289,14 @@
                 memoData: memoData,
                 dateMarks: dateMarks,
                 defaultColor: defaultColor,
+                rangeBlocks: rangeBlocks,
                 healthData: healthData,
                 healthMarks: healthMarks
             }, { merge: true }).catch(e => console.error("Sync error:", e));
+        }
+        function saveRangeBlocks() {
+            localStorage.setItem('rangeBlocks', JSON.stringify(rangeBlocks));
+            syncToCloud();
         }
         function saveHealth() {
             // Auto-trim trailing empty weight boxes
@@ -1429,9 +1497,27 @@
                 if (dateMarks[dateKey] === 'circle') markClass = 'mark-circle';
                 else if (dateMarks[dateKey] === 'x') markClass = 'mark-x';
 
-                cel.onclick = (e) => onCellClick(e, dateKey);
+                cel.setAttribute('data-date', dateKey);
+                cel.onclick = (e) => {
+                    if (isRangeSelecting) return;
+                    onCellClick(e, dateKey);
+                };
 
                 let html = `<div class="day-number-container"><div class="day-number ${markClass}">${d}</div></div><div class="events-container">`;
+
+                // Render range blocks for this date
+                rangeBlocks.forEach((rb, rbIdx) => {
+                    if (dateKey >= rb.startDate && dateKey <= rb.endDate) {
+                        let posClass = 'range-single';
+                        if (rb.startDate !== rb.endDate) {
+                            if (dateKey === rb.startDate) posClass = 'range-start';
+                            else if (dateKey === rb.endDate) posClass = 'range-end';
+                            else posClass = 'range-middle';
+                        }
+                        const label = (dateKey === rb.startDate) ? rb.text : '';
+                        html += `<div class="range-pill ${posClass}" style="background:${rb.color};" data-range-idx="${rbIdx}">${label}</div>`;
+                    }
+                });
 
                 const tasks = scheduleData[dateKey] || [];
                 tasks.forEach(t => {
@@ -1983,16 +2069,170 @@
             renderMemos();
         }
 
+        // ====== Range Block Selection (Long Press + Drag) ======
+        let isRangeSelecting = false;
+        let rangeStartDate = null;
+        let rangeEndDate = null;
+        let rangeLongPressTimer = null;
+        let rangeTouchStartX = 0;
+        let rangeTouchStartY = 0;
+        let pendingRangeColor = '#bbdefb';
+
+        const RANGE_COLORS = ['#bbdefb', '#c8e6c9', '#fff9c4', '#f8bbd0', '#e1bee7', '#ffccbc', '#b2dfdb', '#d1c4e9'];
+
+        function getDateFromPoint(x, y) {
+            const el = document.elementFromPoint(x, y);
+            if (!el) return null;
+            const cell = el.closest('.calendar-cell');
+            if (!cell) return null;
+            return cell.getAttribute('data-date');
+        }
+
+        function highlightRange(startDate, endDate) {
+            if (!startDate || !endDate) return;
+            const [s, e] = startDate <= endDate ? [startDate, endDate] : [endDate, startDate];
+            document.querySelectorAll('.calendar-cell').forEach(cell => {
+                const d = cell.getAttribute('data-date');
+                if (d && d >= s && d <= e) {
+                    cell.classList.add('range-drag-highlight');
+                } else {
+                    cell.classList.remove('range-drag-highlight');
+                }
+            });
+        }
+
+        function clearRangeHighlight() {
+            document.querySelectorAll('.range-drag-highlight').forEach(c => c.classList.remove('range-drag-highlight'));
+        }
+
+        function openRangeModal(startDate, endDate) {
+            const [s, e] = startDate <= endDate ? [startDate, endDate] : [endDate, startDate];
+            rangeStartDate = s;
+            rangeEndDate = e;
+            document.getElementById('range-modal-dates').innerText = `${s} ~ ${e}`;
+            document.getElementById('range-modal-text').value = '';
+            // Build color swatches
+            const colorsDiv = document.getElementById('range-modal-colors');
+            colorsDiv.innerHTML = '';
+            pendingRangeColor = RANGE_COLORS[0];
+            RANGE_COLORS.forEach(c => {
+                const sw = document.createElement('div');
+                sw.style.cssText = `width:28px;height:28px;border-radius:50%;background:${c};cursor:pointer;border:2px solid ${c === pendingRangeColor ? '#333' : 'transparent'};`;
+                sw.onclick = () => {
+                    pendingRangeColor = c;
+                    colorsDiv.querySelectorAll('div').forEach(d => d.style.borderColor = 'transparent');
+                    sw.style.borderColor = '#333';
+                };
+                colorsDiv.appendChild(sw);
+            });
+            document.getElementById('range-modal').style.display = 'flex';
+            setTimeout(() => document.getElementById('range-modal-text').focus(), 100);
+        }
+
+        function confirmRangeBlock() {
+            const text = document.getElementById('range-modal-text').value.trim();
+            if (!text) {
+                alert('일정명을 입력하세요.');
+                return;
+            }
+            rangeBlocks.push({
+                startDate: rangeStartDate,
+                endDate: rangeEndDate,
+                text: text,
+                color: pendingRangeColor
+            });
+            saveRangeBlocks();
+            document.getElementById('range-modal').style.display = 'none';
+            clearRangeHighlight();
+            renderCalendar();
+        }
+
+        function cancelRangeBlock() {
+            document.getElementById('range-modal').style.display = 'none';
+            clearRangeHighlight();
+            rangeStartDate = null;
+            rangeEndDate = null;
+        }
+
+        // Long-press + drag on calendar
+        const calendarEl = document.getElementById('calendar');
+
+        calendarEl.addEventListener('touchstart', function (e) {
+            const target = e.target;
+            const cell = target.closest('.calendar-cell');
+            if (!cell || cell.classList.contains('empty')) return;
+
+            const dateStr = cell.getAttribute('data-date');
+            if (!dateStr) return;
+
+            rangeTouchStartX = e.touches[0].clientX;
+            rangeTouchStartY = e.touches[0].clientY;
+
+            // Check if tapped on a range pill for deletion
+            const rangePill = target.closest('.range-pill');
+            if (rangePill) {
+                const idx = parseInt(rangePill.getAttribute('data-range-idx'));
+                rangeLongPressTimer = setTimeout(() => {
+                    if (navigator.vibrate) navigator.vibrate(50);
+                    if (confirm(`"${rangeBlocks[idx].text}" 기간 블록을 삭제하시겠습니까?`)) {
+                        rangeBlocks.splice(idx, 1);
+                        saveRangeBlocks();
+                        renderCalendar();
+                    }
+                }, 800);
+                return;
+            }
+
+            // Start long-press timer for range creation
+            rangeLongPressTimer = setTimeout(() => {
+                isRangeSelecting = true;
+                rangeStartDate = dateStr;
+                rangeEndDate = dateStr;
+                if (navigator.vibrate) navigator.vibrate(50);
+                highlightRange(rangeStartDate, rangeEndDate);
+            }, 1500);
+        }, { passive: true });
+
+        calendarEl.addEventListener('touchmove', function (e) {
+            const dx = e.touches[0].clientX - rangeTouchStartX;
+            const dy = e.touches[0].clientY - rangeTouchStartY;
+
+            // If moved too much before long-press fires, cancel it
+            if (!isRangeSelecting && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+                clearTimeout(rangeLongPressTimer);
+                return;
+            }
+
+            if (!isRangeSelecting) return;
+            if (e.cancelable) e.preventDefault();
+
+            const dateStr = getDateFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+            if (dateStr && dateStr !== rangeEndDate) {
+                rangeEndDate = dateStr;
+                highlightRange(rangeStartDate, rangeEndDate);
+            }
+        }, { passive: false });
+
+        calendarEl.addEventListener('touchend', function (e) {
+            clearTimeout(rangeLongPressTimer);
+            if (isRangeSelecting) {
+                isRangeSelecting = false;
+                if (rangeStartDate && rangeEndDate) {
+                    const [s, e2] = rangeStartDate <= rangeEndDate ? [rangeStartDate, rangeEndDate] : [rangeEndDate, rangeStartDate];
+                    openRangeModal(s, e2);
+                }
+            }
+        }, { passive: true });
+
         // Touch Swipe Navigation for Calendar (Native Feel)
         let touchStartX = 0;
         let touchStartY = 0;
         let touchCurrentX = 0;
         let isSwiping = false;
         let swipeDirectionDetermined = false;
-        const calendarEl = document.getElementById('calendar');
 
         calendarEl.addEventListener('touchstart', e => {
-            if (isMonthAnimating) return;
+            if (isMonthAnimating || isRangeSelecting) return;
             touchStartX = e.changedTouches[0].screenX;
             touchStartY = e.changedTouches[0].screenY;
             touchCurrentX = touchStartX;
@@ -2002,7 +2242,7 @@
         }, { passive: true });
 
         calendarEl.addEventListener('touchmove', e => {
-            if (!isSwiping || isMonthAnimating) return;
+            if (!isSwiping || isMonthAnimating || isRangeSelecting) return;
             const currentY = e.changedTouches[0].screenY;
             touchCurrentX = e.changedTouches[0].screenX;
 
