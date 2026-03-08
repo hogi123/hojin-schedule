@@ -1366,30 +1366,8 @@
         let clickTimers = {};
 
         function onCellClick(e, dateStr) {
-            if (e.target.tagName.toLowerCase() === 'input') return; // Ignore input clicks
-
-            // Immediately switch the right panel view
+            if (e.target.tagName.toLowerCase() === 'input') return;
             selectDate(dateStr);
-
-            clickCounts[dateStr] = (clickCounts[dateStr] || 0) + 1;
-            if (clickTimers[dateStr]) clearTimeout(clickTimers[dateStr]);
-
-            clickTimers[dateStr] = setTimeout(() => {
-                let count = clickCounts[dateStr];
-                clickCounts[dateStr] = 0;
-
-                if (count === 2) {
-                    if (dateMarks[dateStr] === 'circle') delete dateMarks[dateStr];
-                    else dateMarks[dateStr] = 'circle';
-                    saveMarks();
-                    renderCalendar();
-                } else if (count >= 3) {
-                    if (dateMarks[dateStr] === 'x') delete dateMarks[dateStr];
-                    else dateMarks[dateStr] = 'x';
-                    saveMarks();
-                    renderCalendar();
-                }
-            }, 250);
         }
 
         // Render Calendar
