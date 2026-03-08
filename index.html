@@ -1051,6 +1051,11 @@
             </select>
         </div>
 
+        <div class="routine-form-group">
+            <label>색상</label>
+            <div id="routine-color-picker" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;"></div>
+        </div>
+
         <button class="btn btn-primary" style="margin-top: 10px;" onclick="applyRoutine()">루틴 생성하기</button>
     </div>
 
@@ -1920,6 +1925,8 @@
         }
 
         // Routine Functions
+        let selectedRoutineColor = null;
+
         function openRoutineModal(taskIndex) {
             const task = scheduleData[selectedDate][taskIndex];
             if (!task || !task.text) {
@@ -1927,12 +1934,27 @@
                 return;
             }
             currentRoutineTaskIndex = taskIndex;
+            selectedRoutineColor = task.color || defaultColor;
             document.getElementById('routine-start-date').value = selectedDate;
 
             // Set default end date to 1 month from now
             const startD = new Date(selectedDate);
             startD.setMonth(startD.getMonth() + 1);
             document.getElementById('routine-end-date').value = startD.toISOString().split('T')[0];
+
+            // Build color swatches
+            const colorsDiv = document.getElementById('routine-color-picker');
+            colorsDiv.innerHTML = '';
+            PRESET_COLORS.forEach(c => {
+                const sw = document.createElement('div');
+                sw.style.cssText = `width:24px;height:24px;border-radius:50%;background:${c};cursor:pointer;border:3px solid ${c === selectedRoutineColor ? '#333' : 'transparent'};`;
+                sw.onclick = () => {
+                    selectedRoutineColor = c;
+                    colorsDiv.querySelectorAll('div').forEach(d => d.style.borderColor = 'transparent');
+                    sw.style.borderColor = '#333';
+                };
+                colorsDiv.appendChild(sw);
+            });
 
             document.getElementById('dim-overlay').classList.add('show');
             document.getElementById('routine-modal').classList.add('show');
@@ -1985,7 +2007,7 @@
                     scheduleData[currentStr][slotIndex] = {
                         text: taskToRepeat.text,
                         checked: false,
-                        color: taskToRepeat.color || defaultColor,
+                        color: selectedRoutineColor || taskToRepeat.color || defaultColor,
                         routineId: routineId
                     };
                     addedCount++;
