@@ -1618,10 +1618,9 @@
                 let liSwipeDirectionDetermined = false;
 
                 li.addEventListener('touchstart', (e) => {
-                    // Prevent swipe if tapping on interactive elements like inputs, color picker or buttons
+                    // Prevent swipe if tapping on interactive elements like color picker or buttons
                     const target = e.target;
-                    if (target.closest('.todo-input') ||
-                        target.closest('.color-picker-wrapper') ||
+                    if (target.closest('.color-picker-wrapper') ||
                         target.closest('.todo-checkbox') ||
                         target.closest('.routine-trigger-btn')) {
                         return;
