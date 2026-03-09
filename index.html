@@ -603,21 +603,6 @@
             color: #aaa;
         }
 
-        /* Drag Handle Styles */
-        .drag-handle {
-            cursor: grab;
-            color: #ccc;
-            padding: 0 8px;
-            font-size: 18px;
-            user-select: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .drag-handle:active {
-            cursor: grabbing;
-        }
 
         .sortable-ghost {
             opacity: 0.4;
@@ -1713,12 +1698,6 @@
                 div.className = 'memo-line';
                 div.setAttribute('data-index', index);
 
-                // Add drag handle for goals
-                const handle = document.createElement('div');
-                handle.className = 'drag-handle';
-                handle.innerHTML = '⠿';
-                div.appendChild(handle);
-
                 const input = document.createElement('input');
                 input.type = 'text';
                 input.value = memo;
@@ -1735,7 +1714,9 @@
             // Initialize Sortable for Memos
             new Sortable(memoLinesEl, {
                 animation: 150,
-                handle: '.drag-handle',
+                delay: 1000,
+                delayOnTouchOnly: false,
+                touchStartThreshold: 5,
                 ghostClass: 'sortable-ghost',
                 onEnd: (evt) => {
                     const memoMonthKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
@@ -1793,12 +1774,6 @@
                 const li = document.createElement('li');
                 li.className = 'todo-item';
                 li.setAttribute('data-index', index);
-
-                // Add Drag Handle
-                const handle = document.createElement('div');
-                handle.className = 'drag-handle';
-                handle.innerHTML = '☰'; // Triple bar icon
-                li.appendChild(handle);
 
                 // Swipe Logic
                 let liTouchStartX = 0;
@@ -1981,7 +1956,9 @@
             // Initialize Sortable for Todos
             new Sortable(todoListEl, {
                 animation: 150,
-                handle: '.drag-handle',
+                delay: 1000,
+                delayOnTouchOnly: false,
+                touchStartThreshold: 5,
                 ghostClass: 'sortable-ghost',
                 onEnd: (evt) => {
                     const oldIndex = evt.oldIndex;
@@ -1992,13 +1969,8 @@
                     const draggedItem = targetList.splice(oldIndex, 1)[0];
                     targetList.splice(newIndex, 0, draggedItem);
 
-                    // Ensure we still have consistent slots if needed (optional based on app design)
-                    // The current index.html version allows dynamic length, so we just save.
-
                     saveSchedule();
                     renderCalendar();
-                    // renderTodos() not strictly needed as DOM is already updated,
-                    // but calling it ensures data-index attributes stay in sync.
                     renderTodos();
                 }
             });
