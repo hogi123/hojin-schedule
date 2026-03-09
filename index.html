@@ -188,10 +188,10 @@
 
         /* Memo (Glassmorphism) */
         .memo-wrapper {
-            background: rgba(255, 255, 255, 0.4);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             padding: 10px;
@@ -200,7 +200,6 @@
             box-sizing: border-box;
             display: flex;
             flex-wrap: wrap;
-            /* Allow goals to wrap instead of forcing width */
             align-items: center;
             gap: 5px;
         }
@@ -232,11 +231,10 @@
         .memo-line {
             display: flex;
             min-width: 60px;
-            /* Reduced to stop pushing the layout wide */
-            background: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             padding: 4px 8px;
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .memo-line input {
