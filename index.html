@@ -8,6 +8,10 @@
     <!-- PWA Setup -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4a90e2">
+    <!-- iOS PWA meta tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Schedule">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2370/2370264.png">
 
     <!-- Firebase SDK (Compat versions for simple integration) -->
@@ -498,6 +502,8 @@
             background-color: transparent;
             touch-action: pan-y;
             /* Prevent native horizontal drag/navigation */
+            -webkit-tap-highlight-color: transparent;
+            /* Remove gray tap highlight */
         }
 
         .todo-item {
@@ -1231,7 +1237,7 @@
     </div>
 
 
-    <nav class="bottom-menu">
+    <nav class="bottom-menu" style="padding-bottom: env(safe-area-inset-bottom);">
         <a class="menu-item active" id="nav-schedule" onclick="switchView('schedule')">
             <span style="font-size: 24px; margin-bottom: 5px;">📅</span>
             <span>스케줄</span>
@@ -2837,6 +2843,15 @@
         // Init
         goToToday();
         goToHealthToday();
+
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(reg => console.log('Service Worker registered:', reg))
+                    .catch(err => console.log('Service Worker registration failed:', err));
+            });
+        }
     </script>
 </body>
 

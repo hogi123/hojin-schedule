@@ -3,13 +3,15 @@
   "short_name": "Schedule",
   "start_url": "./index.html",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#f5f7fa",
   "theme_color": "#4a90e2",
   "icons": [
     {
       "src": "https://cdn-icons-png.flaticon.com/512/2370/2370264.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
