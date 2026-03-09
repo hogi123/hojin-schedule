@@ -1668,23 +1668,7 @@
 
                 let html = `<div class="day-number-container"><div class="day-number ${dayNumClass}" ${isHoliday ? `title="${isHoliday}"` : ''}>${d}</div></div><div class="events-container">`;
 
-                // 1. Render To-do items FIRST (immediately under the date) - Limit to 3
-                const tasks = (scheduleData[dateKey] || []).filter(t => t.text);
-                tasks.slice(0, 3).forEach(t => {
-                    let bg = t.color || defaultColor;
-                    let fontColor = '#000';
-                    let border = `1px solid ${bg}`;
-                    let textDecor = t.checked ? 'line-through' : 'none';
-                    let opacity = t.checked ? '0.5' : '1';
-                    html += `<div class="event-pill" style="background:${bg}; color:${fontColor}; border:${border}; text-decoration:${textDecor}; opacity:${opacity};">${t.text}</div>`;
-                });
-
-                // Show "+ N" if there are more than 3 tasks
-                if (tasks.length > 3) {
-                    html += `<div class="more-count">+${tasks.length - 3}</div>`;
-                }
-
-                // 2. Render range blocks BELOW the to-dos
+                // 1. Render range blocks FIRST (immediately under the date) - Must be at the top to connect bars correctly
                 const monthStart = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01`;
                 const monthEnd = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`;
                 const monthRanges = rangeBlocks
@@ -1708,6 +1692,22 @@
                         html += `<div class="range-pill ${placeholderClass}" style="visibility:hidden;">&nbsp;</div>`;
                     }
                 });
+
+                // 2. Render To-do items BELOW range blocks - Limit to 3
+                const tasks = (scheduleData[dateKey] || []).filter(t => t.text);
+                tasks.slice(0, 3).forEach(t => {
+                    let bg = t.color || defaultColor;
+                    let fontColor = '#000';
+                    let border = `1px solid ${bg}`;
+                    let textDecor = t.checked ? 'line-through' : 'none';
+                    let opacity = t.checked ? '0.5' : '1';
+                    html += `<div class="event-pill" style="background:${bg}; color:${fontColor}; border:${border}; text-decoration:${textDecor}; opacity:${opacity};">${t.text}</div>`;
+                });
+
+                // Show "+ N" if there are more than 3 tasks
+                if (tasks.length > 3) {
+                    html += `<div class="more-count">+${tasks.length - 3}</div>`;
+                }
 
                 html += `</div>`;
                 cel.innerHTML = html;
