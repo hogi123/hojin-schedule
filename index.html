@@ -1684,8 +1684,7 @@
                             else if (dateKey === rb.endDate) posClass = 'range-end';
                             else posClass = 'range-middle';
                         }
-                        const isSunday = (new Date(currentYear, currentMonth, d).getDay() === 0);
-                        const label = (dateKey === rb.startDate || isSunday) ? `<span class="range-pill-text">${rb.text || ''}</span>` : '';
+                        const label = (dateKey === rb.startDate) ? `<span class="range-pill-text">${rb.text || ''}</span>` : '';
                         html += `<div class="range-pill ${posClass}" style="background:${rb.color};" onclick="event.stopPropagation();handleRangeBlockTap(${rb.idx})">${label}</div>`;
                     }
                 });
