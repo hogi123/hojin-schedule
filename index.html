@@ -1780,6 +1780,9 @@
             if (!scheduleData[selectedDate]) {
                 scheduleData[selectedDate] = Array(3).fill().map(() => ({ text: '', checked: false, color: null }));
             }
+            // Auto-sort: Move checked items to bottom
+            scheduleData[selectedDate].sort((a, b) => (a.checked === b.checked) ? 0 : a.checked ? 1 : -1);
+
             const tasks = scheduleData[selectedDate];
 
             tasks.forEach((task, index) => {
