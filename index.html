@@ -214,18 +214,10 @@
 
         .memo-lines {
             display: flex;
+            flex-wrap: wrap;
+            /* Added to allow goals to stack vertically if needed */
             flex-grow: 1;
             gap: 10px;
-            overflow-x: auto;
-            -ms-overflow-style: none;
-            /* IE and Edge */
-            scrollbar-width: none;
-            /* Firefox */
-        }
-
-        .memo-lines::-webkit-scrollbar {
-            display: none;
-            /* Chrome, Safari and Opera */
         }
 
         .memo-line {
