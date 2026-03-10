@@ -138,6 +138,8 @@
             overflow-x: hidden;
             /* Make calendar section take up essentially the full viewport height */
             min-height: calc(100vh - 70px);
+            position: relative;
+            /* Base for centered modals */
         }
 
         .calendar-header {
@@ -945,6 +947,80 @@
         <!-- Schedule View -->
         <div id="schedule-view">
             <div class="calendar-section">
+                <!-- Modals moved here for relative centering within the calendar section -->
+                <div id="routine-delete-modal"
+                    style="display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.5); z-index: 3000; align-items: center; justify-content: center;">
+                    <div
+                        style="background: white; padding: 25px 20px; border-radius: 16px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                        <h3 style="margin-top: 0; color: #333; margin-bottom: 10px; font-size: 18px;">반복 할 일 삭제</h3>
+                        <p style="color: #666; font-size: 14px; margin-bottom: 20px; line-height: 1.4;">이 할 일은 반복 루틴에
+                            포함되어
+                            있습니다.<br>어떻게 삭제할까요?</p>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <button id="btn-delete-single" class="btn"
+                                style="background-color: #f39c12; color: white; padding: 12px; font-size: 15px;">이 일정만
+                                삭제</button>
+                            <button id="btn-delete-all" class="btn"
+                                style="background-color: #e74c3c; color: white; padding: 12px; font-size: 15px;">모든 반복
+                                일정
+                                삭제</button>
+                            <button class="btn" onclick="closeRoutineDeleteModal()"
+                                style="background-color: #f1f2f6; color: #555; margin-top: 5px; padding: 12px; font-size: 15px;">취소</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="range-action-modal"
+                    style="display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.5); z-index: 3000; align-items: center; justify-content: center;">
+                    <div
+                        style="background: white; padding: 25px 20px; border-radius: 16px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                        <h3 style="margin-top: 0; color: #333; margin-bottom: 5px; font-size: 18px;"
+                            id="range-action-title">
+                        </h3>
+                        <p style="color: #888; font-size: 12px; margin-bottom: 18px;" id="range-action-dates"></p>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <button class="btn" id="btn-range-edit"
+                                style="background-color: #f39c12; color: white; padding: 12px; font-size: 15px; border-radius:10px;">수정</button>
+                            <button class="btn" id="btn-range-delete"
+                                style="background-color: #e74c3c; color: white; padding: 12px; font-size: 15px; border-radius:10px;">삭제</button>
+                            <button class="btn" id="btn-range-cancel"
+                                style="background-color: #f1f2f6; color: #555; margin-top: 5px; padding: 12px; font-size: 15px; border-radius:10px;">취소</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="range-modal"
+                    style="display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.5); z-index: 3000; align-items: center; justify-content: center;">
+                    <div
+                        style="background: white; padding: 25px 20px; border-radius: 16px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                        <h3 style="margin-top: 0; color: #333; margin-bottom: 15px; font-size: 18px;">📅 기간 블록 추가</h3>
+                        <div style="text-align:left;margin-bottom:10px;">
+                            <label style="font-size:13px;color:#555;display:block;margin-bottom:4px;">일정명</label>
+                            <input type="text" id="range-modal-text" placeholder="예: 수강변경 기간"
+                                style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;">
+                        </div>
+                        <div style="text-align:left;margin-bottom:10px;">
+                            <label style="font-size:13px;color:#555;display:block;margin-bottom:4px;">기간</label>
+                            <div style="display:flex;align-items:center;gap:5px;">
+                                <input type="date" id="range-start-date"
+                                    style="flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:14px;">
+                                <span>~</span>
+                                <input type="date" id="range-end-date"
+                                    style="flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:14px;">
+                            </div>
+                        </div>
+                        <div style="text-align:left;margin-bottom:20px;">
+                            <label style="font-size:13px;color:#555;display:block;margin-bottom:4px;">색상</label>
+                            <div id="range-modal-colors" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+                        </div>
+                        <div style="display:flex;gap:10px;">
+                            <button onclick="cancelRangeBlock()" class="btn"
+                                style="flex:1;background:#f1f2f6;color:#555;padding:12px;border-radius:10px;">취소</button>
+                            <button onclick="confirmRangeBlock()" class="btn btn-primary"
+                                style="flex:2;padding:12px;border-radius:10px;">확인</button>
+                        </div>
+                    </div>
+                </div>
                 <div class="calendar-header">
                     <div class="header-left">
                         <h2 id="current-month">2026년 1월</h2>
@@ -1098,95 +1174,46 @@
             <button class="btn btn-primary" style="margin-top: 10px;" onclick="applyRoutine()">루틴 생성하기</button>
         </div>
 
-        <!-- Routine Deletion Modal -->
-        <div id="routine-delete-modal"
-            style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 3000; align-items: center; justify-content: center;">
-            <div
-                style="background: white; padding: 25px 20px; border-radius: 16px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
-                <h3 style="margin-top: 0; color: #333; margin-bottom: 10px; font-size: 18px;">반복 할 일 삭제</h3>
-                <p style="color: #666; font-size: 14px; margin-bottom: 20px; line-height: 1.4;">이 할 일은 반복 루틴에 포함되어
-                    있습니다.<br>어떻게 삭제할까요?</p>
-                <div style="display: flex; flex-direction: column; gap: 10px;">
-                    <button id="btn-delete-single" class="btn"
-                        style="background-color: #f39c12; color: white; padding: 12px; font-size: 15px;">이 일정만
-                        삭제</button>
-                    <button id="btn-delete-all" class="btn"
-                        style="background-color: #e74c3c; color: white; padding: 12px; font-size: 15px;">모든 반복 일정
-                        삭제</button>
-                    <button class="btn" onclick="closeRoutineDeleteModal()"
-                        style="background-color: #f1f2f6; color: #555; margin-top: 5px; padding: 12px; font-size: 15px;">취소</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Range Block Action Modal -->
-        <div id="range-action-modal"
-            style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 3000; align-items: center; justify-content: center;">
-            <div
-                style="background: white; padding: 25px 20px; border-radius: 16px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
-                <h3 style="margin-top: 0; color: #333; margin-bottom: 5px; font-size: 18px;" id="range-action-title">
-                </h3>
-                <p style="color: #888; font-size: 12px; margin-bottom: 18px;" id="range-action-dates"></p>
-                <div style="display: flex; flex-direction: column; gap: 10px;">
-                    <button class="btn" id="btn-range-edit"
-                        style="background-color: #f39c12; color: white; padding: 12px; font-size: 15px; border-radius:10px;">수정</button>
-                    <button class="btn" id="btn-range-delete"
-                        style="background-color: #e74c3c; color: white; padding: 12px; font-size: 15px; border-radius:10px;">삭제</button>
-                    <button class="btn" id="btn-range-cancel"
-                        style="background-color: #f1f2f6; color: #555; margin-top: 5px; padding: 12px; font-size: 15px; border-radius:10px;">취소</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Range Block Modal -->
-        <div id="range-modal"
-            style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 3000; align-items: center; justify-content: center;">
-            <div
-                style="background: white; padding: 25px 20px; border-radius: 16px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
-                <h3 style="margin-top: 0; color: #333; margin-bottom: 15px; font-size: 18px;">📅 기간 블록 추가</h3>
-                <div style="text-align:left;margin-bottom:10px;">
-                    <label style="font-size:13px;color:#555;display:block;margin-bottom:4px;">일정명</label>
-                    <input type="text" id="range-modal-text" placeholder="예: 수강변경 기간"
-                        style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;">
-                </div>
-                <div style="text-align:left;margin-bottom:10px;">
-                    <label style="font-size:13px;color:#555;display:block;margin-bottom:4px;">시작일</label>
-                    <input type="date" id="range-start-date"
-                        style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;">
-                </div>
-                <div style="text-align:left;margin-bottom:10px;">
-                    <label style="font-size:13px;color:#555;display:block;margin-bottom:4px;">종료일</label>
-                    <input type="date" id="range-end-date"
-                        style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;">
-                </div>
-                <div style="text-align:left;margin-bottom:12px;">
-                    <label style="font-size:13px;color:#555;display:block;margin-bottom:6px;">색상</label>
-                    <div id="range-modal-colors" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn" onclick="cancelRangeBlock()"
-                        style="flex:1; background-color: #f1f2f6; color: #555; padding: 12px; font-size: 15px; border-radius:10px;">취소</button>
-                    <button class="btn btn-primary" onclick="confirmRangeBlock()"
-                        style="flex:1; padding: 12px; font-size: 15px; border-radius:10px;">추가</button>
-                </div>
-            </div>
-        </div>
+        style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;">
+    </div>
+    <div style="text-align:left;margin-bottom:10px;">
+        <label style="font-size:13px;color:#555;display:block;margin-bottom:4px;">시작일</label>
+        <input type="date" id="range-start-date"
+            style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;">
+    </div>
+    <div style="text-align:left;margin-bottom:10px;">
+        <label style="font-size:13px;color:#555;display:block;margin-bottom:4px;">종료일</label>
+        <input type="date" id="range-end-date"
+            style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;">
+    </div>
+    <div style="text-align:left;margin-bottom:12px;">
+        <label style="font-size:13px;color:#555;display:block;margin-bottom:6px;">색상</label>
+        <div id="range-modal-colors" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <button class="btn" onclick="cancelRangeBlock()"
+            style="flex:1; background-color: #f1f2f6; color: #555; padding: 12px; font-size: 15px; border-radius:10px;">취소</button>
+        <button class="btn btn-primary" onclick="confirmRangeBlock()"
+            style="flex:1; padding: 12px; font-size: 15px; border-radius:10px;">추가</button>
+    </div>
+    </div>
+    </div>
 
 
-        <nav class="bottom-menu" style="padding-bottom: env(safe-area-inset-bottom);">
-            <a class="menu-item active" id="nav-schedule" onclick="switchView('schedule')">
-                <span style="font-size: 24px; margin-bottom: 5px;">📅</span>
-                <span>스케줄</span>
-            </a>
-            <a class="menu-item" id="nav-health" onclick="switchView('health')">
-                <span style="font-size: 24px; margin-bottom: 5px;">💪🏽</span>
-                <span>헬스</span>
-            </a>
-            <a class="menu-item" id="nav-settings" onclick="switchView('settings')">
-                <span style="font-size: 24px; margin-bottom: 5px;">⚙️</span>
-                <span>설정 (MY)</span>
-            </a>
-        </nav>
+    <nav class="bottom-menu" style="padding-bottom: env(safe-area-inset-bottom);">
+        <a class="menu-item active" id="nav-schedule" onclick="switchView('schedule')">
+            <span style="font-size: 24px; margin-bottom: 5px;">📅</span>
+            <span>스케줄</span>
+        </a>
+        <a class="menu-item" id="nav-health" onclick="switchView('health')">
+            <span style="font-size: 24px; margin-bottom: 5px;">💪🏽</span>
+            <span>헬스</span>
+        </a>
+        <a class="menu-item" id="nav-settings" onclick="switchView('settings')">
+            <span style="font-size: 24px; margin-bottom: 5px;">⚙️</span>
+            <span>설정 (MY)</span>
+        </a>
+    </nav>
     </div>
 
     <script>
