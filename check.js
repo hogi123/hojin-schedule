@@ -1,0 +1,1 @@
+﻿const fs = require('fs'); const html = fs.readFileSync('index.html', 'utf8'); const startIdx = html.indexOf('<script>') + 8; const endIdx = html.indexOf('</script>', startIdx); const js = html.substring(startIdx, endIdx); try { require('vm').runInNewContext(js); } catch(e) { console.error(e.stack); }
