@@ -574,16 +574,21 @@
             cursor: grabbing;
         }
 
-        /* 드래그 중인 항목 스타일 */
-        .sortable-ghost {
-            opacity: 0.4;
-            background-color: #f0f0f0 !important;
-            border: 1px dashed #4a90e2 !important;
+        /* 드래그 중인 항목 (손가락에 붙어있는 것) */
+        .sortable-chosen {
+            background-color: #ffffff !important;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15) !important;
+            transform: scale(1.02); /* 살짝 커지는 효과 */
+            transition: transform 0.2s ease;
+            z-index: 9999;
         }
 
-        .sortable-chosen {
-            background-color: #fff !important;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1) !important;
+        /* 원래 위치에 남는 가이드 박스 (반투명 점선) */
+        .sortable-ghost {
+            opacity: 0.3 !important;
+            background-color: #f8f9fa !important;
+            border: 2px dashed #4a90e2 !important;
+            border-radius: 8px;
         }
 
         .todo-input {
@@ -1884,10 +1889,21 @@
 
             // Initialize Sortable for Todos
             new Sortable(todoListEl, {
-                handle: '.drag-handle', // [핵심] 핸들 부분을 잡았을 때만 드래그 작동
-                animation: 200,
-                ghostClass: 'sortable-ghost',
-                chosenClass: 'sortable-chosen',
+                animation: 250,           // 이동 시 부드러운 애니메이션
+                delay: 500,               // 500ms(0.5초) 동안 꾹 눌러야 드래그 시작
+                delayOnTouchOnly: true,   // 모바일 터치 환경에서만 지연 시간 적용
+                touchStartThreshold: 5,   // 5px 이상 움직이면 드래그 취소 (실수 방지)
+                
+                ghostClass: 'sortable-ghost',   // 옮겨질 위치의 가이드 스타일
+                chosenClass: 'sortable-chosen', // 선택된 항목의 스타일
+                
+                // 드래그 시작 시 진동 피드백 (지원되는 기기에서만)
+                onStart: function() {
+                    if (window.navigator.vibrate) {
+                        window.navigator.vibrate(50); 
+                    }
+                },
+
                 onEnd: (evt) => {
                     const oldIndex = evt.oldIndex;
                     const newIndex = evt.newIndex;
