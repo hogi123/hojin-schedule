@@ -1670,52 +1670,44 @@
                 let liSwipeDirectionDetermined = false;
 
                 li.addEventListener('touchstart', (e) => {
-                    // [추가] 색상 피커(swatch-trigger)나 팔레트 내부 클릭 시 스와이프 기능 완전 차단
-                    if (e.target.closest('.color-picker-wrapper') || e.target.closest('.palette-popup')) {
+                    // 1. 특정 버튼 클릭 시 스와이프 방지 (이미 적용된 로직 유지)
+                    if (e.target.closest('.color-picker-wrapper') || e.target.closest('.palette-popup') || e.target.closest('.routine-trigger-btn')) {
                         liIsSwiping = false;
                         return; 
-                    }
-
-                    // 기존 포커스 체크 로직 유지
-                    if (document.activeElement.tagName === 'INPUT') {
-                        liIsSwiping = false;
-                        return;
                     }
 
                     liTouchStartX = e.touches[0].clientX;
                     liTouchStartY = e.touches[0].clientY;
                     liIsSwiping = true;
-                    liSwipeDirectionDetermined = false;
+                    liSwipeDirectionDetermined = false; // 방향 판정 초기화
                     li.style.transition = 'none';
                 }, { passive: true });
 
                 li.addEventListener('touchmove', (e) => {
-                    // [추가] 포커스 상태이거나 스와이프가 비활성화된 경우 차단
-                    if (!liIsSwiping || document.activeElement.tagName === 'INPUT') return;
+                    if (!liIsSwiping) return;
 
                     const currentX = e.touches[0].clientX;
                     const currentY = e.touches[0].clientY;
-                    liTouchCurrentX = currentX; // touchend에서 사용하기 위해 저장
                     const deltaX = currentX - liTouchStartX;
                     const deltaY = currentY - liTouchStartY;
 
-                    // [핵심] 가로로 5px 이상만 움직이면 무조건 슬라이드 모드로 전환
+                    // [핵심 수정] 방향 판정 및 최소 이동 거리 설정
                     if (!liSwipeDirectionDetermined) {
-                        if (Math.abs(deltaX) > 5 && Math.abs(deltaX) > Math.abs(deltaY)) {
-                            liSwipeDirectionDetermined = true;
-                        } else if (Math.abs(deltaY) > 5) {
-                            // 수직 스크롤 의도가 강하면 슬라이드 취소
-                            liIsSwiping = false;
-                            return;
+                        // 좌우로 20px 이상 움직였고, 수직 움직임보다 수평 움직임이 클 때만 스와이프 시작
+                        if (Math.abs(deltaX) > 20) { 
+                            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                                liSwipeDirectionDetermined = true;
+                            } else {
+                                liIsSwiping = false; // 위아래 스크롤로 판단하여 중단
+                            }
                         }
+                        return; // 20px 이동 전까지는 아무것도 하지 않음
                     }
 
-                    if (liSwipeDirectionDetermined) {
-                        // [수정] 슬라이드 중에는 체크박스 클릭이나 입력창 포커스가 발동하지 않도록 함
+                    // [핵심 수정] 왼쪽으로 당길 때만(deltaX < 0) 박스가 움직이도록 제한
+                    if (liSwipeDirectionDetermined && deltaX < 0) {
                         if (e.cancelable) e.preventDefault(); 
-                        
-                        // 왼쪽으로 밀 때만 작동 (최대 -80px)
-                        const moveX = Math.min(0, Math.max(deltaX, -80));
+                        const moveX = Math.max(deltaX, -80); // 최대 -80px까지
                         li.style.transform = `translateX(${moveX}px)`;
                         deleteBtn.style.opacity = Math.abs(moveX) / 80;
                     }
