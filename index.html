@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>2026 Schedule App</title>
     <!-- PWA Setup -->
     <link rel="manifest" href="manifest.json">
@@ -24,6 +24,27 @@
     <style>
         * {
             box-sizing: border-box !important;
+            -webkit-tap-highlight-color: transparent; /* 클릭 시 회색 잔상 제거 */
+        }
+
+        body {
+            /* 텍스트 선택 방지 (입력창 제외) */
+            -webkit-user-select: none;
+            user-select: none;
+            /* 모바일 브라우저 pull-to-refresh 효과 및 바운스 방지 */
+            overscroll-behavior-y: none;
+        }
+
+        input, textarea {
+            /* 입력창에서는 텍스트 선택 허용 */
+            -webkit-user-select: text !important;
+            user-select: text !important;
+        }
+
+        .btn, .calendar-cell, .todo-checkbox, .drag-zone, .routine-trigger-btn, .swatch-trigger {
+            /* 버튼류 클릭 시 반응성 개선 (지연 시간 최적화) */
+            touch-action: manipulation;
+            cursor: pointer;
         }
 
         :root {
@@ -3070,6 +3091,16 @@
 
         <button class="btn btn-primary" style="margin-top: 10px;" onclick="applyRoutine()">루틴 생성하기</button>
     </div>
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(reg => console.log('Service Worker registered', reg))
+                    .catch(err => console.log('Service Worker registration failed', err));
+            });
+        }
+    </script>
 </body>
 
 </html>
