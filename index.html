@@ -570,26 +570,24 @@
             user-select: none;
         }
 
-        .drag-handle:active {
-            cursor: grabbing;
-        }
-
-        /* 드래그 중인 항목 (손가락에 붙어있는 것) */
+        /* 드래그 중인 항목 (그림자 효과) */
         .sortable-chosen {
             background-color: #ffffff !important;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15) !important;
-            transform: scale(1.02); /* 살짝 커지는 효과 */
-            transition: transform 0.2s ease;
-            z-index: 9999;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2) !important;
+            transform: scale(1.03);
+            z-index: 9999 !important;
+            opacity: 1 !important;
         }
 
-        /* 원래 위치에 남는 가이드 박스 (반투명 점선) */
+        /* 원래 위치에 남는 점선 박스 (반투명 잔상) */
         .sortable-ghost {
-            opacity: 0.3 !important;
-            background-color: #f8f9fa !important;
+            opacity: 0.2 !important;
+            background-color: #e3f2fd !important; /* 연한 파란색 톤으로 가이드 표시 */
             border: 2px dashed #4a90e2 !important;
-            border-radius: 8px;
         }
+
+        /* 드래그 핸들 아이콘 삭제를 위한 기존 클래스 제거 */
+        .drag-handle { display: none !important; }
 
         .todo-input {
             user-select: text !important;
@@ -1871,12 +1869,12 @@
                     openRoutineModal(index);
                 };
 
-                // [추가] 드래그 핸들 엘리먼트 생성
-                const handle = document.createElement('div');
-                handle.className = 'drag-handle';
-                handle.innerHTML = '⠿'; 
-
-                li.appendChild(handle);
+                // [수정] 점 6개 대신 투명한 드래그 전용 영역 생성
+                const dragZone = document.createElement('div');
+                dragZone.className = 'drag-zone';
+                dragZone.style.cssText = 'width: 30px; height: 100%; cursor: grab; flex-shrink: 0;';
+                
+                li.appendChild(dragZone);
                 li.appendChild(checkbox);
                 li.appendChild(input);
                 li.appendChild(routineBtn);
@@ -1888,7 +1886,9 @@
             });
 
             // Initialize Sortable for Todos
-            new Sortable(todoListEl, {
+            if (window.todoSortable) window.todoSortable.destroy(); // 기존 인스턴스 중복 방지
+            window.todoSortable = new Sortable(todoListEl, {
+                handle: '.drag-zone',      // [핵심] 오직 왼쪽 빈 공간을 눌렀을 때만 작동
                 animation: 250,           // 이동 시 부드러운 애니메이션
                 delay: 500,               // 500ms(0.5초) 동안 꾹 눌러야 드래그 시작
                 delayOnTouchOnly: true,   // 모바일 터치 환경에서만 지연 시간 적용
