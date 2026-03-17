@@ -1670,7 +1670,14 @@
                 let liSwipeDirectionDetermined = false;
 
                 li.addEventListener('touchstart', (e) => {
-                    // 1. 특정 버튼 클릭 시 스와이프 방지 (이미 적용된 로직 유지)
+                    // [핵심 수정] 터치된 요소가 'INPUT'(텍스트란)일 때만 슬라이드 허용
+                    // 체크박스, 색상버튼, 루틴버튼, 또는 빈 여백 터치 시 슬라이드 무시
+                    if (e.target.tagName !== 'INPUT' || e.target.type === 'checkbox') {
+                        liIsSwiping = false;
+                        return;
+                    }
+
+                    // 버튼이나 팔레트 내부 클릭 시 추가 방어 (기존 로직 유지)
                     if (e.target.closest('.color-picker-wrapper') || e.target.closest('.palette-popup') || e.target.closest('.routine-trigger-btn')) {
                         liIsSwiping = false;
                         return; 
@@ -1679,11 +1686,12 @@
                     liTouchStartX = e.touches[0].clientX;
                     liTouchStartY = e.touches[0].clientY;
                     liIsSwiping = true;
-                    liSwipeDirectionDetermined = false; // 방향 판정 초기화
+                    liSwipeDirectionDetermined = false;
                     li.style.transition = 'none';
                 }, { passive: true });
 
                 li.addEventListener('touchmove', (e) => {
+                    // touchstart에서 승인된 경우에만 진행
                     if (!liIsSwiping) return;
 
                     const currentX = e.touches[0].clientX;
@@ -1691,23 +1699,19 @@
                     const deltaX = currentX - liTouchStartX;
                     const deltaY = currentY - liTouchStartY;
 
-                    // [핵심 수정] 방향 판정 및 최소 이동 거리 설정
                     if (!liSwipeDirectionDetermined) {
-                        // 좌우로 20px 이상 움직였고, 수직 움직임보다 수평 움직임이 클 때만 스와이프 시작
-                        if (Math.abs(deltaX) > 20) { 
-                            if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                                liSwipeDirectionDetermined = true;
-                            } else {
-                                liIsSwiping = false; // 위아래 스크롤로 판단하여 중단
-                            }
+                        // 왼쪽으로 20px 이상 확실히 밀었을 때만 시작
+                        if (deltaX < -20 && Math.abs(deltaX) > Math.abs(deltaY)) {
+                            liSwipeDirectionDetermined = true;
+                        } else if (Math.abs(deltaY) > 10 || deltaX > 10) {
+                            liIsSwiping = false;
+                            return;
                         }
-                        return; // 20px 이동 전까지는 아무것도 하지 않음
                     }
 
-                    // [핵심 수정] 왼쪽으로 당길 때만(deltaX < 0) 박스가 움직이도록 제한
                     if (liSwipeDirectionDetermined && deltaX < 0) {
                         if (e.cancelable) e.preventDefault(); 
-                        const moveX = Math.max(deltaX, -80); // 최대 -80px까지
+                        const moveX = Math.max(deltaX, -80);
                         li.style.transform = `translateX(${moveX}px)`;
                         deleteBtn.style.opacity = Math.abs(moveX) / 80;
                     }
