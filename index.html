@@ -1663,76 +1663,69 @@
                 li.setAttribute('data-index', index);
 
                 // Swipe Logic
-                let liTouchStartX = 0;
-                let liTouchStartY = 0;
-                let liTouchCurrentX = 0;
-                let liIsSwiping = false;
-                let liSwipeDirectionDetermined = false;
+                let currentTranslateX = 0; 
 
                 li.addEventListener('touchstart', (e) => {
                     // [핵심 수정] 터치된 요소가 'INPUT'(텍스트란)일 때만 슬라이드 허용
-                    // 체크박스, 색상버튼, 루틴버튼, 또는 빈 여백 터치 시 슬라이드 무시
                     if (e.target.tagName !== 'INPUT' || e.target.type === 'checkbox') {
                         liIsSwiping = false;
                         return;
                     }
-
-                    // 버튼이나 팔레트 내부 클릭 시 추가 방어 (기존 로직 유지)
+                    
+                    // 버튼이나 팔레트 내부 클릭 시 추가 방어
                     if (e.target.closest('.color-picker-wrapper') || e.target.closest('.palette-popup') || e.target.closest('.routine-trigger-btn')) {
                         liIsSwiping = false;
                         return; 
                     }
 
+                    // 시작 시 현재 박스의 위치값을 저장 (이미 밀려있으면 -70, 아니면 0)
+                    const transform = window.getComputedStyle(li).getPropertyValue('transform');
+                    const matrix = new WebKitCSSMatrix(transform);
+                    currentTranslateX = matrix.m41; 
+
                     liTouchStartX = e.touches[0].clientX;
-                    liTouchStartY = e.touches[0].clientY;
                     liIsSwiping = true;
                     liSwipeDirectionDetermined = false;
                     li.style.transition = 'none';
                 }, { passive: true });
 
                 li.addEventListener('touchmove', (e) => {
-                    // touchstart에서 승인된 경우에만 진행
                     if (!liIsSwiping) return;
 
-                    const currentX = e.touches[0].clientX;
-                    const currentY = e.touches[0].clientY;
-                    const deltaX = currentX - liTouchStartX;
-                    const deltaY = currentY - liTouchStartY;
-
+                    const deltaX = e.touches[0].clientX - liTouchStartX;
+                    
                     if (!liSwipeDirectionDetermined) {
-                        // 왼쪽으로 20px 이상 확실히 밀었을 때만 시작
-                        if (deltaX < -20 && Math.abs(deltaX) > Math.abs(deltaY)) {
-                            liSwipeDirectionDetermined = true;
-                        } else if (Math.abs(deltaY) > 10 || deltaX > 10) {
-                            liIsSwiping = false;
-                            return;
-                        }
+                        if (Math.abs(deltaX) > 10) liSwipeDirectionDetermined = true;
+                        return;
                     }
 
-                    if (liSwipeDirectionDetermined && deltaX < 0) {
-                        if (e.cancelable) e.preventDefault(); 
-                        const moveX = Math.max(deltaX, -80);
-                        li.style.transform = `translateX(${moveX}px)`;
-                        deleteBtn.style.opacity = Math.abs(moveX) / 80;
-                    }
+                    // [핵심] 기존 위치(currentTranslateX)에 움직인 거리(deltaX)를 더함
+                    let moveX = currentTranslateX + deltaX;
+
+                    // 범위 제한: -80px(최대 삭제)부터 0px(원위치) 사이에서만 움직임
+                    moveX = Math.min(0, Math.max(moveX, -80));
+
+                    if (e.cancelable) e.preventDefault();
+                    li.style.transform = `translateX(${moveX}px)`;
+                    deleteBtn.style.opacity = Math.abs(moveX) / 80;
                 }, { passive: false });
 
                 li.addEventListener('touchend', (e) => {
                     if (!liIsSwiping) return;
-                    
-                    // [수정] 만약 슬라이드가 발생했다면(방향 결정됨), 
-                    // 클릭 이벤트가 하위 요소(체크박스 등)로 전달되지 않게 차단
-                    if (liSwipeDirectionDetermined) {
-                        e.preventDefault();
-                    }
-
                     liIsSwiping = false;
-                    const finalDeltaX = liTouchCurrentX - liTouchStartX;
+
+                    const transform = window.getComputedStyle(li).getPropertyValue('transform');
+                    const matrix = new WebKitCSSMatrix(transform);
+                    const finalX = matrix.m41;
 
                     li.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)';
-                    if (finalDeltaX < -40) {
+                    
+                    // [자연스러운 마무릿값 결정]
+                    // -40px보다 더 왼쪽이면 열린 상태(-70px)로 고정, 아니면 닫힌 상태(0)로 복귀
+                    if (finalX < -40) {
                         li.style.transform = 'translateX(-70px)';
-                        
+                        deleteBtn.style.opacity = '1';
+
                         // Auto-close if clicking anywhere else
                         const closeSwipe = (evt) => {
                             if (!liContainer.contains(evt.target)) {
@@ -1746,7 +1739,7 @@
                         li.style.transform = 'translateX(0)';
                         deleteBtn.style.opacity = '0';
                     }
-                }, { passive: false });
+                }, { passive: true });
 
                 let effectiveColor = task.color || defaultColor;
                 if (task.checked) {
