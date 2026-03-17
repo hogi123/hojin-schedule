@@ -1670,7 +1670,13 @@
                 let liSwipeDirectionDetermined = false;
 
                 li.addEventListener('touchstart', (e) => {
-                    // [추가] 현재 입력창에 포커스가 가 있다면 슬라이드 무시
+                    // [추가] 색상 피커(swatch-trigger)나 팔레트 내부 클릭 시 스와이프 기능 완전 차단
+                    if (e.target.closest('.color-picker-wrapper') || e.target.closest('.palette-popup')) {
+                        liIsSwiping = false;
+                        return; 
+                    }
+
+                    // 기존 포커스 체크 로직 유지
                     if (document.activeElement.tagName === 'INPUT') {
                         liIsSwiping = false;
                         return;
@@ -1804,10 +1810,16 @@
                 const popupId = 'palette-' + index;
                 palettePopup.id = popupId;
 
-                swatchTrigger.onclick = (e) => {
+                // [추가] 색상 선택 버튼 클릭 시 슬라이드 초기화 (안전장치)
+                swatchTrigger.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    li.style.transition = 'transform 0.3s ease';
+                    li.style.transform = 'translateX(0)';
+                    deleteBtn.style.opacity = '0';
+                    liIsSwiping = false;
+                    
                     togglePalette(popupId);
-                };
+                });
 
                 PRESET_COLORS.forEach(colorHex => {
                     const swatch = document.createElement('div');
