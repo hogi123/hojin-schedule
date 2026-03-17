@@ -561,6 +561,31 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
+        /* 드래그 핸들 스타일 */
+        .drag-handle {
+            cursor: grab;
+            color: #ccc;
+            padding-right: 10px;
+            font-size: 18px;
+            user-select: none;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        /* 드래그 중인 항목 스타일 */
+        .sortable-ghost {
+            opacity: 0.4;
+            background-color: #f0f0f0 !important;
+            border: 1px dashed #4a90e2 !important;
+        }
+
+        .sortable-chosen {
+            background-color: #fff !important;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1) !important;
+        }
+
         .todo-input {
             user-select: text !important;
             /* Allow selection inside input for typing */
@@ -1841,6 +1866,12 @@
                     openRoutineModal(index);
                 };
 
+                // [추가] 드래그 핸들 엘리먼트 생성
+                const handle = document.createElement('div');
+                handle.className = 'drag-handle';
+                handle.innerHTML = '⠿'; 
+
+                li.appendChild(handle);
                 li.appendChild(checkbox);
                 li.appendChild(input);
                 li.appendChild(routineBtn);
@@ -1853,27 +1884,23 @@
 
             // Initialize Sortable for Todos
             new Sortable(todoListEl, {
-                animation: 150,
-                delay: 1000,
-                delayOnTouchOnly: false,
-                touchStartThreshold: 5,
-                forceFallback: true, // Better consistency for long-press
-                fallbackTolerance: 3,
+                handle: '.drag-handle', // [핵심] 핸들 부분을 잡았을 때만 드래그 작동
+                animation: 200,
                 ghostClass: 'sortable-ghost',
                 chosenClass: 'sortable-chosen',
-                dragClass: 'sortable-drag',
                 onEnd: (evt) => {
                     const oldIndex = evt.oldIndex;
                     const newIndex = evt.newIndex;
                     if (oldIndex === newIndex) return;
 
+                    // 실제 데이터 배열(scheduleData) 순서 교체
                     const targetList = scheduleData[selectedDate];
                     const draggedItem = targetList.splice(oldIndex, 1)[0];
                     targetList.splice(newIndex, 0, draggedItem);
 
-                    saveSchedule();
-                    renderCalendar();
-                    renderTodos();
+                    saveSchedule(); // 변경된 순서 저장
+                    renderCalendar(); // 캘린더 요약 반영
+                    // renderTodos는 Sortable이 DOM을 이미 옮겼으므로 굳이 다시 부르지 않아도 됨
                 }
             });
 
