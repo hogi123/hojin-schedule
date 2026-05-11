@@ -140,19 +140,23 @@
             body {
                 align-items: flex-start !important;
                 justify-content: center !important;
+                background: #f0f2f5 !important;
             }
 
             .main-content {
-                max-width: 100% !important;
-                width: 100% !important;
-                border-left: none !important;
-                border-right: none !important;
+                max-width: 480px !important;
+                width: 480px !important;
+                border-left: 1px solid rgba(0, 0, 0, 0.06) !important;
+                border-right: 1px solid rgba(0, 0, 0, 0.06) !important;
+                box-shadow: 0 0 40px rgba(0, 0, 0, 0.08) !important;
+                min-height: 100vh !important;
             }
 
             .bottom-menu {
-                max-width: 100% !important;
-                left: 0 !important;
-                right: 0 !important;
+                max-width: 480px !important;
+                left: 50% !important;
+                right: auto !important;
+                transform: translateX(-50%) !important;
             }
 
             #schedule-view,
@@ -161,12 +165,12 @@
             #settings-view,
             #community-view,
             #profile-view {
-                max-width: 100% !important;
+                max-width: 480px !important;
                 width: 100% !important;
             }
 
             .calendar-cell {
-                height: 130px !important;
+                height: 110px !important;
             }
 
             .calendar-grid {
@@ -197,14 +201,26 @@
         }
 
         @media (min-width: 768px) {
+            body {
+                align-items: flex-start !important;
+                justify-content: center !important;
+                background: #f0f2f5 !important;
+            }
+
             .main-content {
-                max-width: 100% !important;
-                border-left: none !important;
-                border-right: none !important;
+                max-width: 480px !important;
+                width: 480px !important;
+                border-left: 1px solid rgba(0, 0, 0, 0.06) !important;
+                border-right: 1px solid rgba(0, 0, 0, 0.06) !important;
+                box-shadow: 0 0 40px rgba(0, 0, 0, 0.08) !important;
+                min-height: 100vh !important;
             }
 
             .bottom-menu {
-                max-width: 100% !important;
+                max-width: 480px !important;
+                left: 50% !important;
+                right: auto !important;
+                transform: translateX(-50%) !important;
             }
 
             #schedule-view,
@@ -213,51 +229,16 @@
             #settings-view,
             #community-view,
             #profile-view {
-                max-width: 100% !important;
+                max-width: 480px !important;
+                width: 100% !important;
             }
 
             .calendar-cell {
-                height: 130px !important;
+                height: 110px !important;
             }
 
-            .calendar-header h2,
-            #health-current-month,
-            #health-view #health-current-month,
-            .health-calendar-header-bottom #health-current-month {
-                font-size: 26px !important;
-                font-weight: 800 !important;
-                padding-left: 20px !important;
-                line-height: 1 !important;
-                letter-spacing: -0.5px !important;
-            }
-
-            .health-calendar-header-bottom {
-                margin-top: 0 !important;
-                padding: 4px 0 !important;
-            }
-
-            /* 설정탭 PC 풀스크린 */
-            #settings-view>div {
-                max-width: 100% !important;
-                padding: 40px 60px 100px 60px !important;
-            }
-
-            #settings-view>div>h2 {
-                font-size: 32px !important;
-                margin-bottom: 40px !important;
-            }
-
-            #settings-view .setting-item,
-            #settings-view>div>div {
-                max-width: 700px !important;
-                margin-left: auto !important;
-                margin-right: auto !important;
-            }
-
-            #settings-view>div>p {
-                max-width: 700px !important;
-                margin-left: auto !important;
-                margin-right: auto !important;
+            .calendar-grid {
+                width: 100% !important;
             }
         }
 
