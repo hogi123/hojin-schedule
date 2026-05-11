@@ -171,9 +171,11 @@
                 border-left: none !important;
                 border-right: none !important;
             }
+
             .bottom-menu {
                 max-width: 100% !important;
             }
+
             #schedule-view,
             #health-view,
             #account-view,
@@ -182,9 +184,11 @@
             #profile-view {
                 max-width: 100% !important;
             }
+
             .calendar-cell {
                 height: 130px !important;
             }
+
             .calendar-header h2,
             #health-current-month,
             #health-view #health-current-month,
@@ -202,21 +206,24 @@
             }
 
             /* 설정탭 PC 풀스크린 */
-            #settings-view > div {
+            #settings-view>div {
                 max-width: 100% !important;
                 padding: 40px 60px 100px 60px !important;
             }
-            #settings-view > div > h2 {
+
+            #settings-view>div>h2 {
                 font-size: 32px !important;
                 margin-bottom: 40px !important;
             }
+
             #settings-view .setting-item,
-            #settings-view > div > div {
+            #settings-view>div>div {
                 max-width: 700px !important;
                 margin-left: auto !important;
                 margin-right: auto !important;
             }
-            #settings-view > div > p {
+
+            #settings-view>div>p {
                 max-width: 700px !important;
                 margin-left: auto !important;
                 margin-right: auto !important;
@@ -3313,10 +3320,14 @@
             <button class="auth-btn" onclick="handleGoogleLogin()"
                 style="background:#fff; color:#333; border:1px solid #e0e0e0; display:flex; align-items:center; justify-content:center; gap:10px; font-weight:700; border-radius:14px; height:52px;">
                 <svg width="20" height="20" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    <path fill="#4285F4"
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853"
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05"
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                    <path fill="#EA4335"
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                 </svg>
                 Google 계정으로 시작
             </button>
@@ -3325,7 +3336,8 @@
             <button class="auth-btn" onclick="handleAppleLogin()"
                 style="background:#000; color:#fff; display:flex; align-items:center; justify-content:center; gap:10px; font-weight:700; border-radius:14px; height:52px;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                    <path
+                        d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
                 </svg>
                 Apple 계정으로 시작
             </button>
@@ -3340,9 +3352,12 @@
             <div id="email-form" style="display:none; flex-direction:column; gap:10px; width:100%;">
                 <div style="height:1px; background:#eee; margin:4px 0;"></div>
                 <input type="email" id="auth-email" class="auth-input" placeholder="이메일" style="border-radius:12px;">
-                <input type="password" id="auth-password" class="auth-input" placeholder="비밀번호 (6자 이상)" style="border-radius:12px;">
-                <button class="auth-btn btn-primary" onclick="handleLogin()" style="border-radius:12px; height:48px; background:#111; color:#fff; border:none;">로그인</button>
-                <button class="auth-btn" onclick="handleSignup()" style="border-radius:12px; height:48px; background:#f5f5f5; color:#555; border:none; font-weight:600;">회원가입</button>
+                <input type="password" id="auth-password" class="auth-input" placeholder="비밀번호 (6자 이상)"
+                    style="border-radius:12px;">
+                <button class="auth-btn btn-primary" onclick="handleLogin()"
+                    style="border-radius:12px; height:48px; background:#111; color:#fff; border:none;">로그인</button>
+                <button class="auth-btn" onclick="handleSignup()"
+                    style="border-radius:12px; height:48px; background:#f5f5f5; color:#555; border:none; font-weight:600;">회원가입</button>
             </div>
 
         </div>
@@ -3388,17 +3403,18 @@
     <!-- [NEW] Body Info Modal -->
     <!-- [NEW] Monthly Goals Modal -->
     <div id="monthly-goals-modal" class="modal-overlay" style="display: none;">
-        <div class="goals-modal-content" style="max-height: 80vh; display: flex; flex-direction: column; background: #ffffff !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important;">
+        <div class="goals-modal-content"
+            style="max-height: 80vh; display: flex; flex-direction: column; background: #ffffff !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important;">
             <h2 id="goals-modal-title"
-                style="margin: 0 0 5px 0; font-size: 20px; font-weight: 800; color: #333; text-align: center;">5월의 목표 🎯</h2>
+                style="margin: 0 0 5px 0; font-size: 20px; font-weight: 800; color: #333; text-align: center;">5월의 목표 🎯
+            </h2>
             <p style="font-size: 13px; color: #888; text-align: center; margin: 0 0 15px 0;">할 일처럼 체크하고 관리하세요.</p>
 
             <!-- 목표 리스트 -->
             <div id="goals-modal-list" style="flex:1; overflow-y:auto; padding-bottom: 8px;"></div>
 
             <!-- 추가 버튼 -->
-            <button onclick="addGoalItem()"
-                style="width:100%; height:48px; border-radius:14px; font-weight:800; font-size:15px;
+            <button onclick="addGoalItem()" style="width:100%; height:48px; border-radius:14px; font-weight:800; font-size:15px;
                        background:rgba(74,144,226,0.07); color:#4a90e2;
                        border:1.5px solid rgba(74,144,226,0.25); cursor:pointer;
                        display:flex; align-items:center; justify-content:center; gap:6px; margin-top:10px;">
@@ -3914,7 +3930,7 @@
 
                 <!-- 소셜 계정 연동 -->
                 <div style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">
-                    <button onclick="linkApple()" 
+                    <button onclick="linkApple()"
                         style="padding:14px; background:#000; color:#fff; border:none; border-radius:12px; font-weight:700; font-size:15px; cursor:pointer;">
                         🍎 Apple 계정 연결
                     </button>
@@ -4048,8 +4064,8 @@
 
     <nav class="bottom-menu" style="padding-bottom: env(safe-area-inset-bottom);">
         <a class="menu-item active" id="nav-schedule" onclick="switchView('schedule')">
-            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                 <line x1="16" y1="2" x2="16" y2="6"></line>
                 <line x1="8" y1="2" x2="8" y2="6"></line>
@@ -4058,8 +4074,8 @@
             <span>스케줄</span>
         </a>
         <a class="menu-item" id="nav-health" onclick="switchView('health')">
-            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
-                stroke-linejoin="round">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <path d="M6 7.5V16.5M6 12H18M18 7.5V16.5M3 9V15M21 9V15" />
             </svg>
             <span>헬스</span>
@@ -4067,8 +4083,8 @@
 
         <!-- [추가] 커뮤니티 버튼 -->
         <a class="menu-item" id="nav-community" onclick="switchView('community')">
-            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                 <circle cx="9" cy="7" r="4"></circle>
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -4078,8 +4094,8 @@
         </a>
 
         <a class="menu-item" id="nav-account" onclick="switchView('account')">
-            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <path d="M20 12V8H6a2 2 0 0 1-2-2 2 2 0 0 1 2-2h14v4" />
                 <path d="M4 6v12a2 2 0 0 0 2 2h14v-4" />
                 <path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z" />
@@ -4087,8 +4103,8 @@
             <span>가계부</span>
         </a>
         <a class="menu-item" id="nav-settings" onclick="switchView('settings')">
-            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="3"></circle>
                 <path
                     d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
@@ -4126,7 +4142,7 @@
         const db = firebase.firestore();
         const storage = firebase.storage();
 
-        window.handleAppleLogin = async function() {
+        window.handleAppleLogin = async function () {
             const provider = new firebase.auth.OAuthProvider('apple.com');
             provider.addScope('email');
             provider.addScope('name');
@@ -4137,12 +4153,12 @@
             }
         };
 
-        window.toggleEmailForm = function() {
+        window.toggleEmailForm = function () {
             const form = document.getElementById('email-form');
             form.style.display = form.style.display === 'none' ? 'flex' : 'none';
         };
 
-        window.handleGoogleLogin = async function() {
+        window.handleGoogleLogin = async function () {
             const provider = new firebase.auth.GoogleAuthProvider();
             try {
                 await auth.signInWithPopup(provider);
@@ -4152,7 +4168,7 @@
         };
 
         // Apple 계정 연결
-        window.linkApple = async function() {
+        window.linkApple = async function () {
             const provider = new firebase.auth.OAuthProvider('apple.com');
             try {
                 await auth.currentUser.linkWithPopup(provider);
@@ -4163,7 +4179,7 @@
         };
 
         // Google 계정 연결
-        window.linkGoogle = async function() {
+        window.linkGoogle = async function () {
             const provider = new firebase.auth.GoogleAuthProvider();
             try {
                 await auth.currentUser.linkWithPopup(provider);
@@ -4570,7 +4586,7 @@
         function _renderHealthCalendarOnly() {
             // cleanGarbageWorkouts() 호출 없이 renderHealthCalendar 실행
             const temp = window.cleanGarbageWorkouts;
-            window.cleanGarbageWorkouts = () => {}; // 임시 비활성화
+            window.cleanGarbageWorkouts = () => { }; // 임시 비활성화
             renderHealthCalendar();
             window.cleanGarbageWorkouts = temp; // 복구
         }
@@ -4814,12 +4830,12 @@
 
             range: `<div style="background:#f5f7fa; border-radius:20px; padding:16px; width:100%; box-sizing:border-box;">
                 <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:1px; background:rgba(0,0,0,0.08); border:1px solid rgba(0,0,0,0.08); border-radius:12px; overflow:hidden; margin-bottom:12px;">
-                    ${['일','월','화','수','목','금','토'].map((d,i) => `<div style="background:white; text-align:center; padding:5px 0; font-size:10px; font-weight:600; color:${i===0?'#e74c3c':i===6?'#3498db':'#555'};">${d}</div>`).join('')}
-                    ${[...Array(7)].map((_,i) => {
-                        const d = i+5;
-                        const pills = i===1 ? `<div style="background:#bbdefb;font-size:8px;font-weight:700;padding:1px 2px;border-radius:2px 0 0 2px;width:100%;box-sizing:border-box;">🏖️여행</div>` : i>1&&i<5 ? `<div style="background:#bbdefb;font-size:8px;padding:1px 2px;width:100%;box-sizing:border-box;">&nbsp;</div>` : i===5 ? `<div style="background:#bbdefb;font-size:8px;padding:1px 2px;border-radius:0 2px 2px 0;width:100%;box-sizing:border-box;">&nbsp;</div>` : '';
-                        return `<div style="background:white; text-align:center; padding:3px 0; font-size:10px; color:#333; min-height:36px;">${d}${pills}</div>`;
-                    }).join('')}
+                    ${['일', '월', '화', '수', '목', '금', '토'].map((d, i) => `<div style="background:white; text-align:center; padding:5px 0; font-size:10px; font-weight:600; color:${i === 0 ? '#e74c3c' : i === 6 ? '#3498db' : '#555'};">${d}</div>`).join('')}
+                    ${[...Array(7)].map((_, i) => {
+                const d = i + 5;
+                const pills = i === 1 ? `<div style="background:#bbdefb;font-size:8px;font-weight:700;padding:1px 2px;border-radius:2px 0 0 2px;width:100%;box-sizing:border-box;">🏖️여행</div>` : i > 1 && i < 5 ? `<div style="background:#bbdefb;font-size:8px;padding:1px 2px;width:100%;box-sizing:border-box;">&nbsp;</div>` : i === 5 ? `<div style="background:#bbdefb;font-size:8px;padding:1px 2px;border-radius:0 2px 2px 0;width:100%;box-sizing:border-box;">&nbsp;</div>` : '';
+                return `<div style="background:white; text-align:center; padding:3px 0; font-size:10px; color:#333; min-height:36px;">${d}${pills}</div>`;
+            }).join('')}
                 </div>
                 <div style="background:rgba(255,255,255,0.5); border:1px solid rgba(255,255,255,0.4); border-radius:12px; padding:10px 14px; display:flex; align-items:center; gap:8px; justify-content:center;">
                     <span style="font-size:13px; font-weight:700; color:#1976d2;">📅 기간 블록 추가</span>
@@ -4847,7 +4863,7 @@
             </div>`
         };
 
-        window.initTutorial = function() {
+        window.initTutorial = function () {
             if (localStorage.getItem(TUTORIAL_KEY)) return;
 
             const overlay = document.getElementById('tutorial-overlay');
@@ -4923,7 +4939,7 @@
             }
         }
 
-        window.nextTutorialStep = function() {
+        window.nextTutorialStep = function () {
             if (currentTutorialStep < TUTORIAL_STEPS.length - 1) {
                 currentTutorialStep++;
                 updateTutorialUI();
@@ -4932,7 +4948,7 @@
             }
         };
 
-        window.skipTutorial = function() {
+        window.skipTutorial = function () {
             completeTutorial();
         };
 
@@ -5702,7 +5718,7 @@
 
                 // 마우스 스와이프 (PC)
                 li.addEventListener('mousedown', (e) => {
-                    if (e.target.closest('.drag-handle') || e.target.closest('input') || 
+                    if (e.target.closest('.drag-handle') || e.target.closest('input') ||
                         e.target.closest('.color-picker-wrapper') || e.target.closest('button')) return;
                     const startX = e.clientX;
                     let currentX = e.clientX;
@@ -9754,25 +9770,32 @@
             </div>
         </div>
     </div>
-<!-- Tutorial Full Page -->
-<div id="tutorial-overlay" style="display:none; position:fixed; inset:0; z-index:99999; background:#fff; flex-direction:column;">
+    <!-- Tutorial Full Page -->
+    <div id="tutorial-overlay"
+        style="display:none; position:fixed; inset:0; z-index:99999; background:#fff; flex-direction:column;">
 
-    <!-- 상단 -->
-    <div style="display:flex; justify-content:space-between; align-items:center; padding:20px 24px; border-bottom:1px solid #f0f0f0;">
-        <div id="tut-step-dots" style="display:flex; gap:6px;"></div>
-        <button onclick="skipTutorial()" style="background:none; border:none; color:#aaa; font-size:14px; font-weight:700; cursor:pointer;">건너뛰기</button>
-    </div>
+        <!-- 상단 -->
+        <div
+            style="display:flex; justify-content:space-between; align-items:center; padding:20px 24px; border-bottom:1px solid #f0f0f0;">
+            <div id="tut-step-dots" style="display:flex; gap:6px;"></div>
+            <button onclick="skipTutorial()"
+                style="background:none; border:none; color:#aaa; font-size:14px; font-weight:700; cursor:pointer;">건너뛰기</button>
+        </div>
 
-    <!-- 컨텐츠 -->
-    <div style="flex:1; overflow:hidden; position:relative;">
-        <div id="tut-slides" style="display:flex; width:100%; height:100%; transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);"></div>
-    </div>
+        <!-- 컨텐츠 -->
+        <div style="flex:1; overflow:hidden; position:relative;">
+            <div id="tut-slides"
+                style="display:flex; width:100%; height:100%; transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);">
+            </div>
+        </div>
 
-    <!-- 하단 버튼 -->
-    <div style="padding:24px; border-top:1px solid #f0f0f0;">
-        <button id="tut-next-btn" onclick="nextTutorialStep()" style="width:100%; padding:16px; border-radius:16px; background:#111; color:#fff; border:none; font-size:17px; font-weight:800; cursor:pointer; letter-spacing:-0.5px;">다음 →</button>
+        <!-- 하단 버튼 -->
+        <div style="padding:24px; border-top:1px solid #f0f0f0;">
+            <button id="tut-next-btn" onclick="nextTutorialStep()"
+                style="width:100%; padding:16px; border-radius:16px; background:#111; color:#fff; border:none; font-size:17px; font-weight:800; cursor:pointer; letter-spacing:-0.5px;">다음
+                →</button>
+        </div>
     </div>
-</div>
 </body>
 
 </html>
