@@ -4707,131 +4707,253 @@
         let currentTutorialStep = 0;
         const TUTORIAL_KEY = 'routinefit_tutorial_v1';
 
-        function getTutorialSteps() {
-            return [
-                {
-                    noHighlight: true,
-                    title: '루틴핏에 오신 것을 환영해요! 🎉',
-                    desc: '핵심 기능을 1분 안에 알려드릴게요.\n지금 바로 시작해볼까요?'
-                },
-                {
-                    selector: '.swatch-trigger',
-                    title: '🎨 색상 설정',
-                    desc: '동그라미를 탭하면 할 일의 색상을 바꿀 수 있어요. 중요도에 따라 색을 구분해보세요!'
-                },
-                {
-                    selector: '.routine-trigger-btn',
-                    title: '⏰ 알림 & 🔄 루틴 반복',
-                    desc: '점 버튼을 탭하면 알림 설정과 루틴 반복을 설정할 수 있어요. 매일 반복되는 할 일에 활용해보세요!'
-                },
-                {
-                    selector: '.todo-item',
-                    title: '🗑️ 할 일 삭제',
-                    desc: '할 일을 왼쪽으로 밀면 빨간 삭제 버튼이 나타나요!'
-                },
-                {
-                    selector: '.range-trigger-btn',
-                    title: '📅 기간 블록',
-                    desc: '여러 날에 걸친 일정을 캘린더에 블록으로 표시해요. 시험 기간, 여행, 프로젝트에 활용해보세요!'
-                },
-                {
-                    selector: 'button[onclick="openScheduleSettingsMenu()"]',
-                    title: '⚙️ 설정 메뉴',
-                    desc: '톱니바퀴를 누르면 이달의 목표 설정과 근무 패턴을 관리할 수 있어요!'
-                }
-            ];
-        }
+        const TUTORIAL_STEPS = [
+            {
+                emoji: '🔥',
+                title: '루틴핏에 오신 것을\n환영해요!',
+                desc: '스케줄, 헬스, 가계부를 한 번에!\n핵심 기능을 빠르게 알아볼게요.',
+                bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                light: true
+            },
+            {
+                emoji: '🎨',
+                title: '할 일 색상 설정',
+                desc: '할 일 오른쪽 동그라미를 탭하면\n색상을 바꿀 수 있어요.\n중요도에 따라 색을 구분해보세요!',
+                img: 'color',
+                bg: '#f8f9fa'
+            },
+            {
+                emoji: '🔔',
+                title: '알림 & 반복 루틴 설정',
+                desc: '할 일 오른쪽 점(⋮) 버튼을 탭하면\n⏰ 알림 설정과 🔄 루틴 반복을\n설정할 수 있어요!',
+                img: 'alarm',
+                bg: '#f8f9fa'
+            },
+            {
+                emoji: '🗑️',
+                title: '할 일 삭제',
+                desc: '할 일을 왼쪽으로 밀면\n빨간 삭제 버튼이 나타나요!\n꾹 밀어보세요.',
+                img: 'delete',
+                bg: '#f8f9fa'
+            },
+            {
+                emoji: '📅',
+                title: '기간 블록',
+                desc: '스케줄 탭 하단의 [기간 블록] 버튼으로\n여러 날에 걸친 일정을 캘린더에\n블록으로 표시할 수 있어요!',
+                img: 'range',
+                bg: '#f8f9fa'
+            },
+            {
+                emoji: '⚙️',
+                title: '설정 메뉴',
+                desc: '상단 톱니바퀴(⚙️)를 누르면\n이달의 목표 설정과\n근무 패턴을 관리할 수 있어요!',
+                img: 'settings',
+                bg: '#f8f9fa'
+            }
+        ];
+
+        const TUTORIAL_ILLUSTRATIONS = {
+            color: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+                <rect width="320" height="200" fill="#f0f4ff" rx="16"/>
+                <rect x="20" y="30" width="280" height="50" rx="12" fill="white" stroke="#e0e7ff" stroke-width="1.5"/>
+                <rect x="32" y="42" width="6" height="26" rx="3" fill="#bbdefb"/>
+                <circle cx="52" cy="55" r="10" fill="white" stroke="#ddd" stroke-width="1.5"/>
+                <text x="70" y="60" font-family="sans-serif" font-size="14" fill="#333" font-weight="600">운동하기 💪</text>
+                <circle cx="268" cy="55" r="10" fill="#ff6b6b" stroke="white" stroke-width="2"/>
+                <circle cx="248" cy="55" r="6" fill="none" stroke="#ff6b6b" stroke-width="2" stroke-dasharray="3,2"/>
+                
+                <rect x="20" y="90" width="280" height="50" rx="12" fill="white" stroke="#e0e7ff" stroke-width="1.5"/>
+                <rect x="32" y="102" width="6" height="26" rx="3" fill="#c8e6c9"/>
+                <circle cx="52" cy="115" r="10" fill="white" stroke="#ddd" stroke-width="1.5"/>
+                <text x="70" y="120" font-family="sans-serif" font-size="14" fill="#333" font-weight="600">독서 30분 📚</text>
+                <circle cx="268" cy="115" r="10" fill="#4CAF50" stroke="white" stroke-width="2"/>
+                
+                <!-- 팔레트 팝업 -->
+                <rect x="180" y="140" width="130" height="45" rx="10" fill="white" stroke="#eee" stroke-width="1"/>
+                <circle cx="198" cy="163" r="9" fill="#ff6b6b"/>
+                <circle cx="218" cy="163" r="9" fill="#ffd93d"/>
+                <circle cx="238" cy="163" r="9" fill="#6bcb77"/>
+                <circle cx="258" cy="163" r="9" fill="#4d96ff"/>
+                <circle cx="278" cy="163" r="9" fill="#c77dff"/>
+                <path d="M268 130 L278 140" stroke="#999" stroke-width="1.5" stroke-dasharray="3,2"/>
+                <text x="100" y="185" font-family="sans-serif" font-size="11" fill="#4a90e2" font-weight="700">동그라미 탭 → 색상 선택!</text>
+            </svg>`,
+
+            alarm: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+                <rect width="320" height="200" fill="#fff8f0" rx="16"/>
+                <rect x="20" y="20" width="280" height="50" rx="12" fill="white" stroke="#ffe0b2" stroke-width="1.5"/>
+                <rect x="32" y="32" width="6" height="26" rx="3" fill="#bbdefb"/>
+                <circle cx="52" cy="45" r="10" fill="white" stroke="#ddd" stroke-width="1.5"/>
+                <text x="70" y="50" font-family="sans-serif" font-size="14" fill="#333" font-weight="600">운동하기 💪</text>
+                <circle cx="248" cy="45" r="8" fill="#f0f0f0"/>
+                <text x="244" y="49" font-family="sans-serif" font-size="11" fill="#666">⋮</text>
+                
+                <!-- 옵션 메뉴 팝업 -->
+                <rect x="160" y="75" width="150" height="110" rx="16" fill="white" stroke="#eee" stroke-width="1.5"/>
+                <rect x="175" y="90" width="120" height="35" rx="10" fill="#fff9e6"/>
+                <text x="188" y="113" font-family="sans-serif" font-size="12" fill="#f39c12" font-weight="800">📅 날짜 미루기</text>
+                <rect x="175" y="132" width="120" height="35" rx="10" fill="#f0f4ff"/>
+                <text x="188" y="155" font-family="sans-serif" font-size="12" fill="#4a90e2" font-weight="800">🔄 반복 설정</text>
+                
+                <path d="M248 53 L230 80" stroke="#f39c12" stroke-width="2" stroke-dasharray="4,2"/>
+                <text x="20" y="190" font-family="sans-serif" font-size="11" fill="#e67e22" font-weight="700">점(⋮) 버튼 탭 → 알림/반복 설정!</text>
+            </svg>`,
+
+            delete: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+                <rect width="320" height="200" fill="#fff5f5" rx="16"/>
+                <text x="30" y="40" font-family="sans-serif" font-size="12" fill="#e74c3c" font-weight="700">← 왼쪽으로 밀기</text>
+                
+                <!-- 삭제 버튼 보임 -->
+                <rect x="20" y="55" width="280" height="55" rx="12" fill="#ff4444"/>
+                <text x="260" y="88" font-family="sans-serif" font-size="14" fill="white" font-weight="800" text-anchor="middle">삭제</text>
+                
+                <!-- 할 일 카드 (살짝 밀린 상태) -->
+                <rect x="-30" y="55" width="260" height="55" rx="12" fill="white" stroke="#eee" stroke-width="1.5"/>
+                <rect x="-18" y="67" width="6" height="30" rx="3" fill="#bbdefb"/>
+                <circle cx="2" cy="82" r="10" fill="white" stroke="#ddd" stroke-width="1.5"/>
+                <text x="20" y="87" font-family="sans-serif" font-size="14" fill="#333" font-weight="600">운동하기 💪</text>
+                
+                <!-- 화살표 애니메이션 대체 -->
+                <text x="130" y="140" font-family="sans-serif" font-size="28">←</text>
+                <text x="30" y="175" font-family="sans-serif" font-size="11" fill="#e74c3c" font-weight="700">할 일을 왼쪽으로 밀면 삭제 버튼 등장!</text>
+            </svg>`,
+
+            range: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+                <rect width="320" height="200" fill="#f0fff4" rx="16"/>
+                <!-- 미니 캘린더 -->
+                <rect x="20" y="20" width="280" height="120" rx="12" fill="white" stroke="#e0f2e9" stroke-width="1.5"/>
+                <!-- 요일 헤더 -->
+                <text x="30" y="42" font-family="sans-serif" font-size="10" fill="#e74c3c">일</text>
+                <text x="68" y="42" font-family="sans-serif" font-size="10" fill="#555">월</text>
+                <text x="106" y="42" font-family="sans-serif" font-size="10" fill="#555">화</text>
+                <text x="144" y="42" font-family="sans-serif" font-size="10" fill="#555">수</text>
+                <text x="182" y="42" font-family="sans-serif" font-size="10" fill="#555">목</text>
+                <text x="220" y="42" font-family="sans-serif" font-size="10" fill="#555">금</text>
+                <text x="258" y="42" font-family="sans-serif" font-size="10" fill="#3498db">토</text>
+                <!-- 날짜 -->
+                <text x="28" y="62" font-family="sans-serif" font-size="11" fill="#333">5</text>
+                <text x="66" y="62" font-family="sans-serif" font-size="11" fill="#333">6</text>
+                <text x="104" y="62" font-family="sans-serif" font-size="11" fill="#333">7</text>
+                <text x="142" y="62" font-family="sans-serif" font-size="11" fill="#333">8</text>
+                <text x="180" y="62" font-family="sans-serif" font-size="11" fill="#333">9</text>
+                <text x="218" y="62" font-family="sans-serif" font-size="11" fill="#333">10</text>
+                <text x="256" y="62" font-family="sans-serif" font-size="11" fill="#333">11</text>
+                <!-- 기간 블록 -->
+                <rect x="62" y="67" width="197" height="15" rx="3" fill="#bbdefb"/>
+                <text x="68" y="79" font-family="sans-serif" font-size="9" fill="#333" font-weight="700">🏖️ 제주도 여행</text>
+                <rect x="24" y="100" width="120" height="15" rx="3" fill="#c8e6c9"/>
+                <text x="30" y="112" font-family="sans-serif" font-size="9" fill="#333" font-weight="700">📝 기말고사 기간</text>
+                
+                <!-- 기간블록 버튼 -->
+                <rect x="60" y="150" width="200" height="36" rx="12" fill="#e3f2fd" stroke="#bbdefb" stroke-width="1.5"/>
+                <text x="160" y="173" font-family="sans-serif" font-size="13" fill="#1976d2" font-weight="800" text-anchor="middle">📅 기간 블록</text>
+                <path d="M160 148 L160 140" stroke="#1976d2" stroke-width="2" marker-end="url(#arrow)"/>
+            </svg>`,
+
+            settings: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+                <rect width="320" height="200" fill="#f8f0ff" rx="16"/>
+                <!-- 상단 헤더 -->
+                <rect x="20" y="20" width="280" height="48" rx="12" fill="white" stroke="#e9d5ff" stroke-width="1.5"/>
+                <text x="36" y="50" font-family="sans-serif" font-size="18" fill="#333" font-weight="900">26년 5월</text>
+                <!-- 톱니바퀴 -->
+                <circle cx="270" cy="44" r="16" fill="#f0e6ff"/>
+                <text x="261" y="50" font-family="sans-serif" font-size="18">⚙️</text>
+                
+                <!-- 메뉴 팝업 -->
+                <rect x="130" y="75" width="170" height="110" rx="16" fill="white" stroke="#e9d5ff" stroke-width="1.5"/>
+                <rect x="145" y="88" width="140" height="38" rx="10" fill="#f0f4ff"/>
+                <text x="158" y="112" font-family="sans-serif" font-size="13" fill="#4a90e2" font-weight="800">🎯 5월의 목표</text>
+                <rect x="145" y="133" width="140" height="38" rx="10" fill="#fff8f0"/>
+                <text x="158" y="157" font-family="sans-serif" font-size="13" fill="#f39c12" font-weight="800">💼 근무 설정</text>
+                
+                <path d="M270 60 L240 80" stroke="#9b59b6" stroke-width="2" stroke-dasharray="4,2"/>
+                <text x="20" y="192" font-family="sans-serif" font-size="11" fill="#9b59b6" font-weight="700">상단 ⚙️ 탭 → 목표/근무 설정!</text>
+            </svg>`
+        };
 
         window.initTutorial = function() {
             if (localStorage.getItem(TUTORIAL_KEY)) return;
 
-            switchView('schedule');
+            const overlay = document.getElementById('tutorial-overlay');
+            overlay.style.display = 'flex';
 
-            // 데모 할 일 추가 (없으면)
-            setTimeout(() => {
-                if (!scheduleData[selectedDate] || scheduleData[selectedDate].filter(t => t.text).length === 0) {
-                    scheduleData[selectedDate] = [
-                        { text: '운동하기 💪', checked: false, color: '#bbdefb' },
-                        { text: '독서 30분 📚', checked: false, color: '#c8e6c9' }
-                    ];
-                    renderTodos();
+            // 슬라이드 생성
+            const slidesEl = document.getElementById('tut-slides');
+            slidesEl.innerHTML = '';
+
+            TUTORIAL_STEPS.forEach((step, i) => {
+                const slide = document.createElement('div');
+                slide.style.cssText = `min-width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px 28px; box-sizing:border-box; background:${step.bg || '#fff'};`;
+
+                let illustrationHtml = '';
+                if (step.img && TUTORIAL_ILLUSTRATIONS[step.img]) {
+                    illustrationHtml = `<div style="width:100%; max-width:320px; margin-bottom:28px; border-radius:20px; overflow:hidden; box-shadow:0 8px 30px rgba(0,0,0,0.08);">${TUTORIAL_ILLUSTRATIONS[step.img]}</div>`;
                 }
-                currentTutorialStep = 0;
-                showTutorialStep(0);
-            }, 500);
+
+                const textColor = step.light ? 'white' : '#111';
+                const descColor = step.light ? 'rgba(255,255,255,0.85)' : '#555';
+
+                slide.innerHTML = `
+                    ${illustrationHtml}
+                    <div style="text-align:center;">
+                        <div style="font-size:48px; margin-bottom:16px; line-height:1;">${step.emoji}</div>
+                        <div style="font-size:24px; font-weight:900; color:${textColor}; letter-spacing:-0.5px; white-space:pre-line; margin-bottom:14px; line-height:1.3;">${step.title}</div>
+                        <div style="font-size:15px; color:${descColor}; line-height:1.8; white-space:pre-line;">${step.desc}</div>
+                    </div>
+                `;
+
+                if (step.bg && step.bg.includes('gradient')) {
+                    slide.style.background = step.bg;
+                }
+
+                slidesEl.appendChild(slide);
+            });
+
+            // 점 인디케이터 생성
+            renderTutorialDots();
+            currentTutorialStep = 0;
+            updateTutorialUI();
         };
 
-        function showTutorialStep(stepIndex) {
-            const steps = getTutorialSteps();
-            if (stepIndex >= steps.length) {
-                completeTutorial();
-                return;
+        function renderTutorialDots() {
+            const dotsEl = document.getElementById('tut-step-dots');
+            dotsEl.innerHTML = '';
+            TUTORIAL_STEPS.forEach((_, i) => {
+                const dot = document.createElement('div');
+                dot.id = `tut-dot-${i}`;
+                dot.style.cssText = `width:8px; height:8px; border-radius:50%; background:${i === 0 ? '#111' : '#ddd'}; transition:all 0.3s;`;
+                dotsEl.appendChild(dot);
+            });
+        }
+
+        function updateTutorialUI() {
+            const slidesEl = document.getElementById('tut-slides');
+            slidesEl.style.transform = `translateX(-${currentTutorialStep * 100}%)`;
+
+            // 점 업데이트
+            TUTORIAL_STEPS.forEach((_, i) => {
+                const dot = document.getElementById(`tut-dot-${i}`);
+                if (dot) {
+                    dot.style.background = i === currentTutorialStep ? '#111' : '#ddd';
+                    dot.style.width = i === currentTutorialStep ? '20px' : '8px';
+                    dot.style.borderRadius = i === currentTutorialStep ? '4px' : '50%';
+                }
+            });
+
+            // 마지막 슬라이드면 버튼 텍스트 변경
+            const btn = document.getElementById('tut-next-btn');
+            if (btn) {
+                btn.innerText = currentTutorialStep === TUTORIAL_STEPS.length - 1 ? '시작하기 🚀' : '다음 →';
             }
-
-            const step = steps[stepIndex];
-            const overlay = document.getElementById('tutorial-overlay');
-            overlay.style.display = 'block';
-
-            document.getElementById('tutorial-step-indicator').innerText = `${stepIndex + 1} / ${steps.length}`;
-            document.getElementById('tutorial-title').innerText = step.title;
-            document.getElementById('tutorial-desc').innerText = step.desc;
-
-            const nextBtn = document.getElementById('tutorial-next-btn');
-            nextBtn.innerText = stepIndex === steps.length - 1 ? '시작하기 🚀' : '다음 →';
-
-            const highlight = document.getElementById('tutorial-highlight');
-            const arrow = document.getElementById('tutorial-arrow');
-            const card = document.getElementById('tutorial-card');
-
-            if (step.noHighlight) {
-                highlight.style.display = 'none';
-                arrow.style.display = 'none';
-                card.style.top = '50%';
-                card.style.left = '50%';
-                card.style.transform = 'translate(-50%, -50%)';
-                return;
-            }
-
-            card.style.transform = 'none';
-            highlight.style.display = 'block';
-            arrow.style.display = 'block';
-
-            const el = document.querySelector(step.selector);
-            if (!el) { nextTutorialStep(); return; }
-
-            const rect = el.getBoundingClientRect();
-            const pad = 10;
-            const vw = window.innerWidth;
-            const vh = window.innerHeight;
-            const cardW = 280;
-
-            highlight.style.left = (rect.left - pad) + 'px';
-            highlight.style.top = (rect.top - pad) + 'px';
-            highlight.style.width = (rect.width + pad * 2) + 'px';
-            highlight.style.height = (rect.height + pad * 2) + 'px';
-
-            // 카드 위치 (요소가 화면 상단이면 아래, 하단이면 위)
-            const cardTop = rect.top < vh / 2
-                ? rect.bottom + pad + 35
-                : rect.top - pad - 195;
-
-            let cardLeft = rect.left + rect.width / 2 - cardW / 2;
-            cardLeft = Math.max(10, Math.min(cardLeft, vw - cardW - 10));
-
-            card.style.top = cardTop + 'px';
-            card.style.left = cardLeft + 'px';
-
-            // 화살표 위치
-            arrow.innerHTML = rect.top < vh / 2 ? '⬆️' : '⬇️';
-            arrow.style.left = (rect.left + rect.width / 2 - 14) + 'px';
-            arrow.style.top = rect.top < vh / 2
-                ? (rect.bottom + pad + 5) + 'px'
-                : (rect.top - pad - 38) + 'px';
         }
 
         window.nextTutorialStep = function() {
-            currentTutorialStep++;
-            showTutorialStep(currentTutorialStep);
+            if (currentTutorialStep < TUTORIAL_STEPS.length - 1) {
+                currentTutorialStep++;
+                updateTutorialUI();
+            } else {
+                completeTutorial();
+            }
         };
 
         window.skipTutorial = function() {
@@ -4840,7 +4962,13 @@
 
         function completeTutorial() {
             localStorage.setItem(TUTORIAL_KEY, 'true');
-            document.getElementById('tutorial-overlay').style.display = 'none';
+            const overlay = document.getElementById('tutorial-overlay');
+            overlay.style.opacity = '0';
+            overlay.style.transition = 'opacity 0.4s';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                overlay.style.opacity = '1';
+            }, 400);
             switchView('schedule');
         }
         function saveRangeBlocks() {
@@ -9650,18 +9778,23 @@
             </div>
         </div>
     </div>
-<!-- Tutorial Overlay -->
-<div id="tutorial-overlay" style="display:none; position:fixed; inset:0; z-index:99998;">
-    <div id="tutorial-highlight" style="position:absolute; border:3px solid #fff; border-radius:16px; box-shadow:0 0 0 9999px rgba(0,0,0,0.78); transition:all 0.4s cubic-bezier(0.4,0,0.2,1); pointer-events:none; z-index:2;"></div>
-    <div id="tutorial-arrow" style="position:absolute; font-size:28px; z-index:3; transition:all 0.4s ease;">👆</div>
-    <div id="tutorial-card" style="position:absolute; background:white; border-radius:24px; padding:24px; width:280px; box-shadow:0 20px 50px rgba(0,0,0,0.3); z-index:3; transition:all 0.4s ease;">
-        <div id="tutorial-step-indicator" style="font-size:12px; color:#aaa; margin-bottom:6px; font-weight:700;"></div>
-        <div id="tutorial-title" style="font-size:19px; font-weight:900; color:#111; margin-bottom:10px; letter-spacing:-0.5px;"></div>
-        <div id="tutorial-desc" style="font-size:14px; color:#555; line-height:1.7; margin-bottom:22px;"></div>
-        <div style="display:flex; gap:10px;">
-            <button onclick="skipTutorial()" style="flex:1; padding:12px; border-radius:14px; background:#f5f5f5; color:#999; border:none; font-weight:700; cursor:pointer; font-size:14px;">건너뛰기</button>
-            <button id="tutorial-next-btn" onclick="nextTutorialStep()" style="flex:2; padding:12px; border-radius:14px; background:#111; color:#fff; border:none; font-weight:800; cursor:pointer; font-size:14px;">다음 →</button>
-        </div>
+<!-- Tutorial Full Page -->
+<div id="tutorial-overlay" style="display:none; position:fixed; inset:0; z-index:99999; background:#fff; flex-direction:column;">
+
+    <!-- 상단 -->
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:20px 24px; border-bottom:1px solid #f0f0f0;">
+        <div id="tut-step-dots" style="display:flex; gap:6px;"></div>
+        <button onclick="skipTutorial()" style="background:none; border:none; color:#aaa; font-size:14px; font-weight:700; cursor:pointer;">건너뛰기</button>
+    </div>
+
+    <!-- 컨텐츠 -->
+    <div style="flex:1; overflow:hidden; position:relative;">
+        <div id="tut-slides" style="display:flex; width:100%; height:100%; transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);"></div>
+    </div>
+
+    <!-- 하단 버튼 -->
+    <div style="padding:24px; border-top:1px solid #f0f0f0;">
+        <button id="tut-next-btn" onclick="nextTutorialStep()" style="width:100%; padding:16px; border-radius:16px; background:#111; color:#fff; border:none; font-size:17px; font-weight:800; cursor:pointer; letter-spacing:-0.5px;">다음 →</button>
     </div>
 </div>
 </body>
