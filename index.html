@@ -3905,6 +3905,18 @@
                     </div>
                 </div>
 
+                <!-- 소셜 계정 연동 -->
+                <div style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">
+                    <button onclick="linkApple()" 
+                        style="padding:14px; background:#000; color:#fff; border:none; border-radius:12px; font-weight:700; font-size:15px; cursor:pointer;">
+                        🍎 Apple 계정 연결
+                    </button>
+                    <button onclick="linkGoogle()"
+                        style="padding:14px; background:#fff; color:#333; border:1px solid #ddd; border-radius:12px; font-weight:700; font-size:15px; cursor:pointer;">
+                        🔗 Google 계정 연결
+                    </button>
+                </div>
+
                 <!-- 계정 -->
                 <div style="margin-top: 28px;">
                     <p
@@ -4124,6 +4136,28 @@
                 await auth.signInWithPopup(provider);
             } catch (error) {
                 document.getElementById('auth-error').innerText = '구글 로그인 실패: ' + error.message;
+            }
+        };
+
+        // Apple 계정 연결
+        window.linkApple = async function() {
+            const provider = new firebase.auth.OAuthProvider('apple.com');
+            try {
+                await auth.currentUser.linkWithPopup(provider);
+                alert('Apple 계정이 연결되었습니다!');
+            } catch (error) {
+                alert('연결 실패: ' + error.message);
+            }
+        };
+
+        // Google 계정 연결
+        window.linkGoogle = async function() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                await auth.currentUser.linkWithPopup(provider);
+                alert('Google 계정이 연결되었습니다!');
+            } catch (error) {
+                alert('연결 실패: ' + error.message);
             }
         };
 
