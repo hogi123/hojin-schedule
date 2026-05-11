@@ -4702,6 +4702,147 @@
                 userWorkoutMap: userWorkoutMap
             }, { merge: true }).catch(e => console.error("Sync error:", e));
         }
+
+        // ====== Tutorial System ======
+        let currentTutorialStep = 0;
+        const TUTORIAL_KEY = 'routinefit_tutorial_v1';
+
+        function getTutorialSteps() {
+            return [
+                {
+                    noHighlight: true,
+                    title: '루틴핏에 오신 것을 환영해요! 🎉',
+                    desc: '핵심 기능을 1분 안에 알려드릴게요.\n지금 바로 시작해볼까요?'
+                },
+                {
+                    selector: '.swatch-trigger',
+                    title: '🎨 색상 설정',
+                    desc: '동그라미를 탭하면 할 일의 색상을 바꿀 수 있어요. 중요도에 따라 색을 구분해보세요!'
+                },
+                {
+                    selector: '.routine-trigger-btn',
+                    title: '⏰ 알림 & 🔄 루틴 반복',
+                    desc: '점 버튼을 탭하면 알림 설정과 루틴 반복을 설정할 수 있어요. 매일 반복되는 할 일에 활용해보세요!'
+                },
+                {
+                    selector: '.todo-item',
+                    title: '🗑️ 할 일 삭제',
+                    desc: '할 일을 왼쪽으로 밀면 빨간 삭제 버튼이 나타나요!'
+                },
+                {
+                    selector: '.range-trigger-btn',
+                    title: '📅 기간 블록',
+                    desc: '여러 날에 걸친 일정을 캘린더에 블록으로 표시해요. 시험 기간, 여행, 프로젝트에 활용해보세요!'
+                },
+                {
+                    selector: 'button[onclick="openScheduleSettingsMenu()"]',
+                    title: '⚙️ 설정 메뉴',
+                    desc: '톱니바퀴를 누르면 이달의 목표 설정과 근무 패턴을 관리할 수 있어요!'
+                }
+            ];
+        }
+
+        window.initTutorial = function() {
+            if (localStorage.getItem(TUTORIAL_KEY)) return;
+
+            switchView('schedule');
+
+            // 데모 할 일 추가 (없으면)
+            setTimeout(() => {
+                if (!scheduleData[selectedDate] || scheduleData[selectedDate].filter(t => t.text).length === 0) {
+                    scheduleData[selectedDate] = [
+                        { text: '운동하기 💪', checked: false, color: '#bbdefb' },
+                        { text: '독서 30분 📚', checked: false, color: '#c8e6c9' }
+                    ];
+                    renderTodos();
+                }
+                currentTutorialStep = 0;
+                showTutorialStep(0);
+            }, 500);
+        };
+
+        function showTutorialStep(stepIndex) {
+            const steps = getTutorialSteps();
+            if (stepIndex >= steps.length) {
+                completeTutorial();
+                return;
+            }
+
+            const step = steps[stepIndex];
+            const overlay = document.getElementById('tutorial-overlay');
+            overlay.style.display = 'block';
+
+            document.getElementById('tutorial-step-indicator').innerText = `${stepIndex + 1} / ${steps.length}`;
+            document.getElementById('tutorial-title').innerText = step.title;
+            document.getElementById('tutorial-desc').innerText = step.desc;
+
+            const nextBtn = document.getElementById('tutorial-next-btn');
+            nextBtn.innerText = stepIndex === steps.length - 1 ? '시작하기 🚀' : '다음 →';
+
+            const highlight = document.getElementById('tutorial-highlight');
+            const arrow = document.getElementById('tutorial-arrow');
+            const card = document.getElementById('tutorial-card');
+
+            if (step.noHighlight) {
+                highlight.style.display = 'none';
+                arrow.style.display = 'none';
+                card.style.top = '50%';
+                card.style.left = '50%';
+                card.style.transform = 'translate(-50%, -50%)';
+                return;
+            }
+
+            card.style.transform = 'none';
+            highlight.style.display = 'block';
+            arrow.style.display = 'block';
+
+            const el = document.querySelector(step.selector);
+            if (!el) { nextTutorialStep(); return; }
+
+            const rect = el.getBoundingClientRect();
+            const pad = 10;
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            const cardW = 280;
+
+            highlight.style.left = (rect.left - pad) + 'px';
+            highlight.style.top = (rect.top - pad) + 'px';
+            highlight.style.width = (rect.width + pad * 2) + 'px';
+            highlight.style.height = (rect.height + pad * 2) + 'px';
+
+            // 카드 위치 (요소가 화면 상단이면 아래, 하단이면 위)
+            const cardTop = rect.top < vh / 2
+                ? rect.bottom + pad + 35
+                : rect.top - pad - 195;
+
+            let cardLeft = rect.left + rect.width / 2 - cardW / 2;
+            cardLeft = Math.max(10, Math.min(cardLeft, vw - cardW - 10));
+
+            card.style.top = cardTop + 'px';
+            card.style.left = cardLeft + 'px';
+
+            // 화살표 위치
+            arrow.innerHTML = rect.top < vh / 2 ? '⬆️' : '⬇️';
+            arrow.style.left = (rect.left + rect.width / 2 - 14) + 'px';
+            arrow.style.top = rect.top < vh / 2
+                ? (rect.bottom + pad + 5) + 'px'
+                : (rect.top - pad - 38) + 'px';
+        }
+
+        window.nextTutorialStep = function() {
+            currentTutorialStep++;
+            showTutorialStep(currentTutorialStep);
+        };
+
+        window.skipTutorial = function() {
+            completeTutorial();
+        };
+
+        function completeTutorial() {
+            localStorage.setItem(TUTORIAL_KEY, 'true');
+            document.getElementById('tutorial-overlay').style.display = 'none';
+            switchView('schedule');
+        }
         function saveRangeBlocks() {
             localStorage.setItem('rangeBlocks', JSON.stringify(rangeBlocks));
             syncToCloud();
@@ -7221,6 +7362,8 @@
 
                         switchView('schedule');
 
+                        if (window.initTutorial) setTimeout(initTutorial, 800);
+
                         // Firebase에서 데이터 로드 (이게 진짜 데이터)
                         loadCloudData();
                     }
@@ -9507,6 +9650,20 @@
             </div>
         </div>
     </div>
+<!-- Tutorial Overlay -->
+<div id="tutorial-overlay" style="display:none; position:fixed; inset:0; z-index:99998;">
+    <div id="tutorial-highlight" style="position:absolute; border:3px solid #fff; border-radius:16px; box-shadow:0 0 0 9999px rgba(0,0,0,0.78); transition:all 0.4s cubic-bezier(0.4,0,0.2,1); pointer-events:none; z-index:2;"></div>
+    <div id="tutorial-arrow" style="position:absolute; font-size:28px; z-index:3; transition:all 0.4s ease;">👆</div>
+    <div id="tutorial-card" style="position:absolute; background:white; border-radius:24px; padding:24px; width:280px; box-shadow:0 20px 50px rgba(0,0,0,0.3); z-index:3; transition:all 0.4s ease;">
+        <div id="tutorial-step-indicator" style="font-size:12px; color:#aaa; margin-bottom:6px; font-weight:700;"></div>
+        <div id="tutorial-title" style="font-size:19px; font-weight:900; color:#111; margin-bottom:10px; letter-spacing:-0.5px;"></div>
+        <div id="tutorial-desc" style="font-size:14px; color:#555; line-height:1.7; margin-bottom:22px;"></div>
+        <div style="display:flex; gap:10px;">
+            <button onclick="skipTutorial()" style="flex:1; padding:12px; border-radius:14px; background:#f5f5f5; color:#999; border:none; font-weight:700; cursor:pointer; font-size:14px;">건너뛰기</button>
+            <button id="tutorial-next-btn" onclick="nextTutorialStep()" style="flex:2; padding:12px; border-radius:14px; background:#111; color:#fff; border:none; font-weight:800; cursor:pointer; font-size:14px;">다음 →</button>
+        </div>
+    </div>
+</div>
 </body>
 
 </html>
