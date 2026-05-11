@@ -3202,6 +3202,23 @@
                 transform: rotate(360deg);
             }
         }
+
+        /* 세로줄 완전 제거 */
+        .calendar-grid .day-header,
+        .calendar-grid .calendar-cell,
+        .calendar-grid .calendar-cell.empty-top,
+        .calendar-grid .calendar-cell.empty-bottom {
+            border-right: none !important;
+            border-left: none !important;
+            border-top: none !important;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+            box-shadow: none !important;
+        }
+
+        .calendar-grid {
+            border: none !important;
+            gap: 0 !important;
+        }
     </style>
 </head>
 
