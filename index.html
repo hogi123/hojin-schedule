@@ -369,7 +369,7 @@
         .calendar-cell,
         .calendar-cell.empty-top,
         .calendar-cell.empty-bottom {
-            border-right: none !important;
+            border-right: 1px solid rgba(0, 0, 0, 0.08) !important;
             border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
             margin: 0 !important;
             background-color: rgba(255, 255, 255, 0.2) !important;
@@ -4126,24 +4126,12 @@
         const db = firebase.firestore();
         const storage = firebase.storage();
 
-        // Redirect 로그인 결과 처리
-        auth.getRedirectResult().then((result) => {
-            if (result && result.user) {
-                console.log('Redirect 로그인 성공:', result.user.email);
-            }
-        }).catch((error) => {
-            if (error.code !== 'auth/no-current-user') {
-                const errorEl = document.getElementById('auth-error');
-                if (errorEl) errorEl.innerText = '로그인 실패: ' + error.message;
-            }
-        });
-
         window.handleAppleLogin = async function() {
             const provider = new firebase.auth.OAuthProvider('apple.com');
             provider.addScope('email');
             provider.addScope('name');
             try {
-                await auth.signInWithRedirect(provider);
+                await auth.signInWithPopup(provider);
             } catch (error) {
                 document.getElementById('auth-error').innerText = '애플 로그인 실패: ' + error.message;
             }
@@ -4157,7 +4145,7 @@
         window.handleGoogleLogin = async function() {
             const provider = new firebase.auth.GoogleAuthProvider();
             try {
-                await auth.signInWithRedirect(provider);
+                await auth.signInWithPopup(provider);
             } catch (error) {
                 document.getElementById('auth-error').innerText = '구글 로그인 실패: ' + error.message;
             }
